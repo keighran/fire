@@ -254,9 +254,28 @@ export interface CashBalances {
 // Onboarding helper types
 // ---------------------------------------------------------------------------
 
+export interface Account {
+  id: number;
+  name: string;
+  type: string;
+  institution: string;
+  currency: string;
+  is_retirement: boolean;
+  notes: string | null;
+  created_at: string;
+}
+
 export interface AccountCreatePayload {
   name: string;
   type: string;
+  institution?: string;
+  currency?: string;
+  is_retirement?: boolean;
+  notes?: string;
+}
+
+export interface AccountUpdatePayload {
+  name?: string;
   institution?: string;
   currency?: string;
   is_retirement?: boolean;
@@ -268,6 +287,22 @@ export interface AssetCreatePayload {
   name: string;
   category: string;
   asset_class?: string;
+}
+
+export interface TransactionRow {
+  id: number;
+  account_id: number;
+  asset_id: number | null;
+  type: string;
+  date: string;
+  units: number | null;
+  price_per_unit: number | null;
+  amount: number;
+  fees: number;
+  franking_percentage: number | null;
+  is_drp: boolean;
+  notes: string | null;
+  created_at: string;
 }
 
 export interface TransactionCreatePayload {
@@ -335,12 +370,21 @@ export const api = {
   getFIREInputs: (token: string) => get<Record<string, number | null>>("/api/fire/inputs", token),
 
   // Onboarding — account / asset / transaction creation
+  listAccounts: (token: string) => get<Account[]>("/api/accounts", token),
   createAccount: (token: string, body: AccountCreatePayload) =>
-    post<{ id: number; name: string }>("/api/accounts", token, body),
+    post<Account>("/api/accounts", token, body),
+  updateAccount: (token: string, id: number, body: AccountUpdatePayload) =>
+    request<Account>("PUT", `/api/accounts/${id}`, token, body),
+  deleteAccount: (token: string, id: number) =>
+    del<{ deleted: number }>(`/api/accounts/${id}`, token),
   createAsset: (token: string, body: AssetCreatePayload) =>
     post<{ id: number; ticker: string }>("/api/assets", token, body),
+  listTransactions: (token: string, accountId?: number) =>
+    get<TransactionRow[]>(`/api/transactions${accountId ? `?account_id=${accountId}` : ""}`, token),
   createTransaction: (token: string, body: TransactionCreatePayload) =>
     post<{ id: number }>("/api/transactions", token, body),
+  deleteTransaction: (token: string, id: number) =>
+    del<{ deleted: number }>(`/api/transactions/${id}`, token),
 
   // Billing
   getSubscription: (token: string) => get<SubscriptionInfo>("/api/billing/subscription", token),

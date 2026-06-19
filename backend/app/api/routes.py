@@ -110,6 +110,14 @@ class UserSettingsUpdate(BaseModel):
     pay_day_of_month: Optional[int] = None
 
 
+class AccountUpdate(BaseModel):
+    name: Optional[str] = None
+    institution: Optional[str] = None
+    currency: Optional[str] = None
+    is_retirement: Optional[bool] = None
+    notes: Optional[str] = None
+
+
 # ---------------------------------------------------------------------------
 # Health
 # ---------------------------------------------------------------------------
@@ -191,6 +199,28 @@ def create_account(
 @router.get("/accounts")
 def list_accounts(current_user: User = Depends(get_current_user), db: Session = Depends(get_session)):
     return db.exec(select(Account).where(Account.user_id == current_user.id)).all()
+
+
+@router.put("/accounts/{account_id}")
+@limiter.limit(LIMIT_WRITE)
+def update_account(
+    request: Request,
+    account_id: int,
+    body: AccountUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+):
+    account = db.exec(
+        select(Account).where(Account.id == account_id, Account.user_id == current_user.id)
+    ).first()
+    if not account:
+        raise HTTPException(404, "Account not found")
+    for field, value in body.model_dump(exclude_none=True).items():
+        setattr(account, field, value)
+    db.add(account)
+    db.commit()
+    db.refresh(account)
+    return account
 
 
 @router.delete("/accounts/{account_id}")

@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import { getAuthToken } from "@/lib/auth";
 import { formatAUD, gainColour } from "@/lib/format";
+import AddTransactionButton from "@/components/AddTransactionButton";
 
 export const metadata = { title: "Super — WealthTrack AU" };
 
@@ -25,7 +26,10 @@ export default async function SuperPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Superannuation</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Superannuation</h1>
+        <AddTransactionButton label="+ Add Contribution" />
+      </div>
       <p className="text-sm text-slate-500 -mt-4">
         Super assets are excluded from the main portfolio and not subject to CGT (separate tax treatment).
       </p>

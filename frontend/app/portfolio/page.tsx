@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { api, Holding } from "@/lib/api";
 import { formatAUD, gainColour } from "@/lib/format";
+import AddTransactionModal from "@/components/AddTransactionModal";
 
 const CLASS_COLOURS: Record<string, string> = {
   ETF:            "bg-emerald-500",
@@ -68,6 +69,7 @@ export default function PortfolioPage() {
   const [filterClass, setFilterClass] = useState<string>("All");
   const [showRetirement, setShowRetirement] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showTxnModal, setShowTxnModal] = useState(false);
 
   const load = useCallback(async () => {
     const token = await getToken();
@@ -150,14 +152,29 @@ export default function PortfolioPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Portfolio</h1>
-        <button
-          onClick={handleRefreshPrices}
-          disabled={refreshing}
-          className="text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-700 px-3 py-1.5 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
-        >
-          {refreshing ? "Refreshing…" : "↻ Refresh Prices"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowTxnModal(true)}
+            className="text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:border-emerald-500 px-3 py-1.5 rounded-lg transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
+          >
+            + Add Transaction
+          </button>
+          <button
+            onClick={handleRefreshPrices}
+            disabled={refreshing}
+            className="text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-700 px-3 py-1.5 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+          >
+            {refreshing ? "Refreshing…" : "↻ Refresh Prices"}
+          </button>
+        </div>
       </div>
+
+      {showTxnModal && (
+        <AddTransactionModal
+          onClose={() => setShowTxnModal(false)}
+          onSaved={load}
+        />
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">

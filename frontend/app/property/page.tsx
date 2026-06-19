@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 import { getAuthToken } from "@/lib/auth";
 import { formatAUD, gainColour } from "@/lib/format";
 import LVRGauge from "@/components/LVRGauge";
+import AddTransactionButton from "@/components/AddTransactionButton";
 
 export const metadata = { title: "Property — WealthTrack AU" };
 
@@ -16,7 +17,10 @@ export default async function PropertyPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Property</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Property</h1>
+        <AddTransactionButton label="+ Add Property Transaction" />
+      </div>
 
       {/* Portfolio KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">

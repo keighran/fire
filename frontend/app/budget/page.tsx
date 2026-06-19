@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 import { getAuthToken } from "@/lib/auth";
 import { formatAUD, formatPct, gainColour } from "@/lib/format";
 import BudgetBarChart from "@/components/BudgetBarChart";
+import AddTransactionButton from "@/components/AddTransactionButton";
 
 export const metadata = { title: "Budget — WealthTrack AU" };
 
@@ -53,7 +54,10 @@ export default async function BudgetPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Budget</h1>
-        <span className="text-sm text-slate-500">{monthLabel}</span>
+        <div className="flex items-center gap-3">
+          <AddTransactionButton />
+          <span className="text-sm text-slate-500">{monthLabel}</span>
+        </div>
       </div>
 
       {/* KPI row */}
