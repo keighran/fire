@@ -107,6 +107,8 @@ class UserSettingsUpdate(BaseModel):
     fire_current_age: Optional[int] = None
     fire_target_retire_age: Optional[int] = None
     fire_life_expectancy: Optional[int] = None
+    bank_interest_rate: Optional[Decimal] = None
+    pay_day_of_month: Optional[int] = None
 
 
 # ---------------------------------------------------------------------------

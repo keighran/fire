@@ -201,7 +201,7 @@ export default function OnboardingPage() {
   };
 
   // --- Step 3: Preferences ---
-  const [cgtMethod, setCgtMethod] = useState("fifo");
+  const [cgtMethod, setCgtMethod] = useState("FIFO");
   const [emergencyMonths, setEmergencyMonths] = useState("3");
   const [brokerage, setBrokerage] = useState("9.95");
   const [bankRate, setBankRate] = useState("4.5");
@@ -581,8 +581,8 @@ export default function OnboardingPage() {
           <div className="grid grid-cols-2 gap-4">
             <Field label="CGT Method">
               <Select value={cgtMethod} onChange={(e) => setCgtMethod(e.target.value)}>
-                <option value="fifo">FIFO (ATO Default)</option>
-                <option value="manual">Manual / Specific Parcel</option>
+                <option value="FIFO">FIFO (ATO Default)</option>
+                <option value="Manual">Manual / Specific Parcel</option>
               </Select>
             </Field>
             <Field label="Emergency Fund (months)">
