@@ -29,17 +29,17 @@ function DividendCalendar({ dividends }: { dividends: { date: string; net_amount
           return (
             <div key={abbr} className="flex flex-col items-center gap-1.5">
               <div
-                className="w-full aspect-square rounded-md flex items-center justify-center text-[10px] font-medium transition-colors"
-                style={{
-                  backgroundColor: amount > 0 ? `rgba(16,185,129,${intensity})` : "#0f172a",
-                  color: amount > 0 ? "#d1fae5" : "#334155",
-                  border: "1px solid #1e293b",
-                }}
+                className={`w-full aspect-square rounded-md flex items-center justify-center text-[10px] font-medium border transition-colors ${
+                  amount > 0
+                    ? "text-emerald-950 dark:text-emerald-100 border-emerald-500/20"
+                    : "bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-850"
+                }`}
+                style={amount > 0 ? { backgroundColor: `rgba(16,185,129,${intensity})` } : undefined}
                 title={amount > 0 ? `${abbr}: ${formatAUD(amount)}` : `${abbr}: no dividends`}
               >
                 {amount > 0 ? formatAUD(amount, true) : "—"}
               </div>
-              <span className="text-[9px] text-slate-600">{abbr}</span>
+              <span className="text-[9px] text-slate-500 dark:text-slate-400">{abbr}</span>
             </div>
           );
         })}
@@ -99,7 +99,7 @@ export default async function DividendsPage() {
         </div>
         <div className="card text-center">
           <p className="stat-label mb-1">Gross Dividend Income</p>
-          <p className="stat-value text-slate-100">{formatAUD(totalGross)}</p>
+          <p className="stat-value text-slate-900 dark:text-slate-100">{formatAUD(totalGross)}</p>
           <p className="text-xs text-slate-500 mt-1">Net + Franking credits</p>
         </div>
       </div>
@@ -127,13 +127,13 @@ export default async function DividendsPage() {
                 {fYears.map((fy) => {
                   const row = fySummary[fy];
                   return (
-                    <tr key={fy} className="hover:bg-slate-800/40">
-                      <td className="table-td text-left font-medium text-slate-300">FY {fy}</td>
-                      <td className="table-td text-emerald-400">{formatAUD(row.ETF ?? 0)}</td>
-                      <td className="table-td text-blue-400">{formatAUD(row.Stock ?? 0)}</td>
-                      <td className="table-td text-violet-400">{formatAUD(row["Managed Fund"] ?? 0)}</td>
-                      <td className="table-td text-amber-400">{formatAUD(row.Crypto ?? 0)}</td>
-                      <td className="table-td font-semibold text-slate-100">{formatAUD(row.total ?? 0)}</td>
+                    <tr key={fy} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      <td className="table-td text-left font-medium text-slate-700 dark:text-slate-300">FY {fy}</td>
+                      <td className="table-td text-emerald-600 dark:text-emerald-400">{formatAUD(row.ETF ?? 0)}</td>
+                      <td className="table-td text-blue-600 dark:text-blue-400">{formatAUD(row.Stock ?? 0)}</td>
+                      <td className="table-td text-violet-600 dark:text-violet-400">{formatAUD(row["Managed Fund"] ?? 0)}</td>
+                      <td className="table-td text-amber-600 dark:text-amber-400">{formatAUD(row.Crypto ?? 0)}</td>
+                      <td className="table-td font-semibold text-slate-900 dark:text-slate-100">{formatAUD(row.total ?? 0)}</td>
                     </tr>
                   );
                 })}
@@ -171,17 +171,17 @@ export default async function DividendsPage() {
                 </tr>
               ) : (
                 divs.map((d, i) => (
-                  <tr key={i} className="hover:bg-slate-800/40">
-                    <td className="table-td text-left font-medium text-slate-100">{d.ticker}</td>
-                    <td className="table-td text-left text-slate-400 text-xs">{d.asset_class}</td>
-                    <td className="table-td text-slate-300">{formatDate(d.date)}</td>
-                    <td className="table-td text-slate-400">{Number(d.units_at_ex_date).toFixed(2)}</td>
-                    <td className="table-td text-emerald-400 font-medium">{formatAUD(d.net_amount)}</td>
-                    <td className="table-td text-slate-400">{d.franking_percentage.toFixed(0)}%</td>
-                    <td className="table-td text-blue-400">{formatAUD(d.franking_credit)}</td>
-                    <td className="table-td font-semibold text-slate-200">{formatAUD(d.gross_amount)}</td>
-                    <td className="table-td text-slate-400">{d.yield_on_cost.toFixed(2)}%</td>
-                    <td className="table-td text-slate-500 text-xs">{d.tax_year}</td>
+                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td className="table-td text-left font-medium text-slate-900 dark:text-slate-100">{d.ticker}</td>
+                    <td className="table-td text-left text-slate-500 dark:text-slate-400 text-xs">{d.asset_class}</td>
+                    <td className="table-td text-slate-700 dark:text-slate-300">{formatDate(d.date)}</td>
+                    <td className="table-td text-slate-600 dark:text-slate-400">{Number(d.units_at_ex_date).toFixed(2)}</td>
+                    <td className="table-td text-emerald-600 dark:text-emerald-400 font-medium">{formatAUD(d.net_amount)}</td>
+                    <td className="table-td text-slate-600 dark:text-slate-400">{d.franking_percentage.toFixed(0)}%</td>
+                    <td className="table-td text-blue-600 dark:text-blue-400">{formatAUD(d.franking_credit)}</td>
+                    <td className="table-td font-semibold text-slate-800 dark:text-slate-200">{formatAUD(d.gross_amount)}</td>
+                    <td className="table-td text-slate-600 dark:text-slate-400">{d.yield_on_cost.toFixed(2)}%</td>
+                    <td className="table-td text-slate-500 dark:text-slate-500 text-xs">{d.tax_year}</td>
                   </tr>
                 ))
               )}

@@ -33,23 +33,23 @@ export default function HoldingsTable({ holdings }: Props) {
               </tr>
             )}
             {sorted.map((h) => (
-              <tr key={h.ticker} className="hover:bg-slate-800/40 transition-colors">
+              <tr key={h.ticker} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                 <td className="table-td text-left">
-                  <span className="font-medium text-slate-100">{h.ticker}</span>
+                  <span className="font-medium text-slate-900 dark:text-slate-100">{h.ticker}</span>
                   <span className="block text-xs text-slate-500 truncate max-w-[180px]">{h.name}</span>
                   {h.is_retirement && (
-                    <span className="text-[10px] text-purple-400 font-medium">SUPER</span>
+                    <span className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">SUPER</span>
                   )}
                 </td>
                 <td className="table-td">
-                  <span className="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
                     {h.asset_class}
                   </span>
                 </td>
-                <td className="table-td text-slate-300">{formatUnits(h.total_units)}</td>
-                <td className="table-td text-slate-300">{formatAUD(h.current_price)}</td>
-                <td className="table-td text-slate-400">{formatAUD(h.weighted_avg_cost)}</td>
-                <td className="table-td font-medium text-slate-100">{formatAUD(h.market_value)}</td>
+                <td className="table-td text-slate-700 dark:text-slate-300">{formatUnits(h.total_units)}</td>
+                <td className="table-td text-slate-700 dark:text-slate-300">{formatAUD(h.current_price)}</td>
+                <td className="table-td text-slate-600 dark:text-slate-400">{formatAUD(h.weighted_avg_cost)}</td>
+                <td className="table-td font-medium text-slate-900 dark:text-slate-100">{formatAUD(h.market_value)}</td>
                 <td className={`table-td font-medium ${gainColour(h.unrealised_gain)}`}>
                   {formatAUD(h.unrealised_gain)}
                   <span className="block text-xs">{formatPct(h.unrealised_gain_pct)}</span>
@@ -57,7 +57,7 @@ export default function HoldingsTable({ holdings }: Props) {
                 <td className={`table-td ${gainColour(h.annualised_return_pct)}`}>
                   {formatPct(h.annualised_return_pct)}
                 </td>
-                <td className="table-td text-slate-400">
+                <td className="table-td text-slate-600 dark:text-slate-400">
                   {h.dividend_yield_on_cost > 0 ? formatPct(h.dividend_yield_on_cost) : "—"}
                 </td>
               </tr>
@@ -67,7 +67,7 @@ export default function HoldingsTable({ holdings }: Props) {
             <tfoot>
               <tr>
                 <td colSpan={5} className="text-xs text-slate-500 pt-3">Total</td>
-                <td className="table-td font-semibold text-slate-100">
+                <td className="table-td font-semibold text-slate-900 dark:text-slate-100">
                   {formatAUD(sorted.reduce((s, h) => s + h.market_value, 0))}
                 </td>
                 <td className={`table-td font-semibold ${gainColour(sorted.reduce((s, h) => s + h.unrealised_gain, 0))}`}>

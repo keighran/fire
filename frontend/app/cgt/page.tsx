@@ -32,9 +32,9 @@ export default async function CGTPage({
         <h1 className="text-xl font-semibold">Capital Gains Tax Report</h1>
         <div className="flex items-center gap-2 text-sm text-slate-400">
           <span>Tax Year:</span>
-          <span className="text-slate-200 font-medium">{searchParams.tax_year ?? `${currentFY} (current)`}</span>
+          <span className="text-slate-800 dark:text-slate-200 font-medium">{searchParams.tax_year ?? `${currentFY} (current)`}</span>
           {!searchParams.tax_year && (
-            <span className="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-400">Free plan shows current FY — upgrade for full history</span>
+            <span className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-transparent">Free plan shows current FY — upgrade for full history</span>
           )}
         </div>
       </div>
@@ -90,14 +90,14 @@ export default async function CGTPage({
                 </tr>
               ) : (
                 report.events.map((e, i) => (
-                  <tr key={i} className="hover:bg-slate-800/40">
-                    <td className="table-td text-left font-medium text-slate-100">{e.asset_ticker}</td>
-                    <td className="table-td text-slate-300">{formatDate(e.sell_date)}</td>
-                    <td className="table-td text-slate-300">{formatDate(e.buy_date)}</td>
-                    <td className="table-td text-slate-400">{e.holding_days}</td>
-                    <td className="table-td text-slate-300">{Number(e.units_disposed).toFixed(4)}</td>
-                    <td className="table-td text-slate-400">{formatAUD(e.cost_base)}</td>
-                    <td className="table-td text-slate-300">{formatAUD(e.gross_proceeds)}</td>
+                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td className="table-td text-left font-medium text-slate-900 dark:text-slate-100">{e.asset_ticker}</td>
+                    <td className="table-td text-slate-700 dark:text-slate-300">{formatDate(e.sell_date)}</td>
+                    <td className="table-td text-slate-700 dark:text-slate-300">{formatDate(e.buy_date)}</td>
+                    <td className="table-td text-slate-600 dark:text-slate-400">{e.holding_days}</td>
+                    <td className="table-td text-slate-700 dark:text-slate-300">{Number(e.units_disposed).toFixed(4)}</td>
+                    <td className="table-td text-slate-600 dark:text-slate-400">{formatAUD(e.cost_base)}</td>
+                    <td className="table-td text-slate-700 dark:text-slate-300">{formatAUD(e.gross_proceeds)}</td>
                     <td className={`table-td font-medium ${gainColour(e.gross_gain)}`}>{formatAUD(e.gross_gain)}</td>
                     <td className="table-td text-center">
                       {e.discount_applied

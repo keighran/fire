@@ -68,8 +68,8 @@ export default async function SideIncomePage() {
           </p>
         ) : (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-400">Total side income recorded</span>
-            <span className="text-lg font-semibold text-slate-100">{formatAUD(totalAllTime)}</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">Total side income recorded</span>
+            <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatAUD(totalAllTime)}</span>
           </div>
         )}
         <p className="text-xs text-slate-600 mt-3">

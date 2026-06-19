@@ -6,7 +6,7 @@ export const metadata = { title: "Super — WealthTrack AU" };
 
 function ProgressBar({ pct, color = "bg-emerald-500" }: { pct: number; color?: string }) {
   return (
-    <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+    <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
       <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${Math.min(pct, 100)}%` }} />
     </div>
   );
@@ -74,9 +74,9 @@ export default async function SuperPage() {
               </div>
               <ProgressBar pct={100 - employerPct} color="bg-violet-500" />
             </div>
-            <div className="flex justify-between text-sm pt-3 border-t border-slate-800">
-              <span className="font-semibold text-slate-300">Total FY Contributions</span>
-              <span className="font-semibold text-slate-100">{formatAUD(contribTotal)}</span>
+            <div className="flex justify-between text-sm pt-3 border-t border-slate-200 dark:border-slate-800">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">Total FY Contributions</span>
+              <span className="font-semibold text-slate-900 dark:text-slate-100">{formatAUD(contribTotal)}</span>
             </div>
           </div>
         )}
@@ -98,8 +98,8 @@ export default async function SuperPage() {
               </thead>
               <tbody>
                 {data.accounts.map((fund) => (
-                  <tr key={fund.name} className="hover:bg-slate-800/40">
-                    <td className="table-td text-left font-medium text-slate-200">{fund.name}</td>
+                  <tr key={fund.name} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td className="table-td text-left font-medium text-slate-800 dark:text-slate-200">{fund.name}</td>
                     <td className="table-td">{formatAUD(fund.balance)}</td>
                     <td className="table-td text-blue-400">{formatAUD(fund.employer_sg)}</td>
                     <td className="table-td text-violet-400">{formatAUD(fund.voluntary)}</td>
@@ -112,9 +112,9 @@ export default async function SuperPage() {
       )}
 
       {/* Info box */}
-      <div className="card border border-blue-900/50 bg-blue-950/20">
-        <p className="text-xs text-blue-400 font-semibold mb-2">Australian Super Rules</p>
-        <ul className="text-xs text-blue-300/70 space-y-1.5 list-disc list-inside">
+      <div className="card border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20">
+        <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mb-2">Australian Super Rules</p>
+        <ul className="text-xs text-blue-800/80 dark:text-blue-300/70 space-y-1.5 list-disc list-inside">
           <li>Employer SG rate: 11.5% of ordinary time earnings (FY 2024–25). Rises to 12% in FY 2025–26.</li>
           <li>Concessional contributions cap: $30,000/year (FY 2024–25).</li>
           <li>Non-concessional cap: $120,000/year (or $360,000 via 3-year bring-forward).</li>

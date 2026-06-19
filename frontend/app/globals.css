@@ -4,24 +4,24 @@
 
 @layer base {
   body {
-    @apply antialiased;
+    @apply antialiased transition-colors duration-200;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-slate-900 rounded-xl border border-slate-800 p-5;
+    @apply bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 transition-all duration-200;
   }
   .stat-label {
     @apply text-xs text-slate-500 uppercase tracking-wider;
   }
   .stat-value {
-    @apply text-2xl font-semibold text-slate-100;
+    @apply text-2xl font-semibold text-slate-900 dark:text-slate-100;
   }
   .table-th {
     @apply text-xs text-slate-500 uppercase tracking-wider text-right pb-2;
   }
   .table-td {
-    @apply text-sm text-right py-2.5 border-t border-slate-800;
+    @apply text-sm text-right py-2.5 border-t border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300;
   }
 }

@@ -45,13 +45,13 @@ export default async function FIREPage() {
           </div>
           <div className="card text-center">
             <p className="stat-label mb-1">Years to FIRE</p>
-            <p className="text-xl font-semibold text-slate-100">
+            <p className="text-xl font-semibold text-slate-900 dark:text-slate-100">
               {result.already_fire ? "You're FIRE! ✅" : (result.years_to_fire ?? "—")}
             </p>
           </div>
           <div className="card text-center">
             <p className="stat-label mb-1">FIRE Date</p>
-            <p className="text-xl font-semibold text-slate-100">{result.fire_date_year ?? "—"}</p>
+            <p className="text-xl font-semibold text-slate-900 dark:text-slate-100">{result.fire_date_year ?? "—"}</p>
           </div>
           <div className="card text-center">
             <p className="stat-label mb-1">Current Shortfall</p>
@@ -68,10 +68,10 @@ export default async function FIREPage() {
         <p className="stat-label mb-3">Assumptions</p>
         {inputs ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-            <div><span className="text-slate-500">Return Rate</span><br /><span className="text-slate-200">{(((inputs.investment_return_rate ?? 0) as number) * 100).toFixed(1)}%</span></div>
-            <div><span className="text-slate-500">Inflation</span><br /><span className="text-slate-200">{(((inputs.inflation_rate ?? 0) as number) * 100).toFixed(1)}%</span></div>
-            <div><span className="text-slate-500">SWR</span><br /><span className="text-slate-200">{(((inputs.safe_withdrawal_rate ?? 0) as number) * 100).toFixed(1)}%</span></div>
-            <div><span className="text-slate-500">Annual Spend</span><br /><span className="text-slate-200">{formatAUD((inputs.target_annual_spend ?? 0) as number)}</span></div>
+            <div><span className="text-slate-500">Return Rate</span><br /><span className="text-slate-800 dark:text-slate-200">{(((inputs.investment_return_rate ?? 0) as number) * 100).toFixed(1)}%</span></div>
+            <div><span className="text-slate-500">Inflation</span><br /><span className="text-slate-800 dark:text-slate-200">{(((inputs.inflation_rate ?? 0) as number) * 100).toFixed(1)}%</span></div>
+            <div><span className="text-slate-500">SWR</span><br /><span className="text-slate-800 dark:text-slate-200">{(((inputs.safe_withdrawal_rate ?? 0) as number) * 100).toFixed(1)}%</span></div>
+            <div><span className="text-slate-500">Annual Spend</span><br /><span className="text-slate-800 dark:text-slate-200">{formatAUD((inputs.target_annual_spend ?? 0) as number)}</span></div>
           </div>
         ) : (
           <p className="text-slate-500 text-sm">Configure FIRE assumptions in Settings.</p>

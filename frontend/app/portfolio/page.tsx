@@ -14,11 +14,11 @@ const CLASS_COLOURS: Record<string, string> = {
 };
 
 const CLASS_TEXT: Record<string, string> = {
-  ETF:            "text-emerald-400",
-  Stock:          "text-blue-400",
-  "Managed Fund": "text-violet-400",
-  Crypto:         "text-amber-400",
-  Other:          "text-slate-400",
+  ETF:            "text-emerald-600 dark:text-emerald-400",
+  Stock:          "text-blue-600 dark:text-blue-400",
+  "Managed Fund": "text-violet-600 dark:text-violet-400",
+  Crypto:         "text-amber-600 dark:text-amber-400",
+  Other:          "text-slate-500 dark:text-slate-400",
 };
 
 type SortKey = keyof Pick<Holding, "ticker" | "market_value" | "unrealised_gain_pct" | "annualised_return_pct" | "cost_base" | "dividend_yield_on_cost">;
@@ -49,9 +49,9 @@ function AllocationBar({ holdings }: { holdings: Holding[] }) {
         {Object.entries(byClass).map(([cls, val]) => (
           <div key={cls} className="flex items-center gap-2 text-xs">
             <span className={`w-2.5 h-2.5 rounded-sm ${CLASS_COLOURS[cls] ?? "bg-slate-500"}`} />
-            <span className="text-slate-400">{cls}</span>
-            <span className="text-slate-200 font-medium">{((val / total) * 100).toFixed(1)}%</span>
-            <span className="text-slate-500">{formatAUD(val)}</span>
+            <span className="text-slate-500 dark:text-slate-400">{cls}</span>
+            <span className="text-slate-800 dark:text-slate-200 font-medium">{((val / total) * 100).toFixed(1)}%</span>
+            <span className="text-slate-500 dark:text-slate-500">{formatAUD(val)}</span>
           </div>
         ))}
       </div>
@@ -138,9 +138,9 @@ export default function PortfolioPage() {
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse">
-        <div className="h-6 w-32 bg-slate-800 rounded" />
-        <div className="h-24 bg-slate-800 rounded-xl" />
-        <div className="h-72 bg-slate-800 rounded-xl" />
+        <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+        <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-xl" />
       </div>
     );
   }
@@ -153,7 +153,7 @@ export default function PortfolioPage() {
         <button
           onClick={handleRefreshPrices}
           disabled={refreshing}
-          className="text-xs text-slate-400 hover:text-emerald-400 border border-slate-700 hover:border-emerald-700 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+          className="text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-700 px-3 py-1.5 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
         >
           {refreshing ? "Refreshing…" : "↻ Refresh Prices"}
         </button>
@@ -167,7 +167,7 @@ export default function PortfolioPage() {
         </div>
         <div className="card">
           <p className="stat-label mb-1">Total Cost</p>
-          <p className="stat-value text-slate-300">{formatAUD(totalCost)}</p>
+          <p className="stat-value text-slate-700 dark:text-slate-300">{formatAUD(totalCost)}</p>
         </div>
         <div className="card">
           <p className="stat-label mb-1">Unrealised Gain</p>
@@ -194,8 +194,8 @@ export default function PortfolioPage() {
               onClick={() => setFilterClass(cls)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 filterClass === cls
-                  ? "bg-emerald-700 text-white"
-                  : "bg-slate-800 text-slate-400 hover:text-slate-200"
+                  ? "bg-emerald-600 dark:bg-emerald-700 text-white"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
               }`}
             >
               {cls}
@@ -240,12 +240,12 @@ export default function PortfolioPage() {
                 </tr>
               ) : (
                 filtered.map((h) => (
-                  <tr key={h.ticker + h.asset_class} className="hover:bg-slate-800/40">
+                  <tr key={h.ticker + h.asset_class} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                     <td className="table-td text-left">
                       <div>
-                        <span className="font-semibold text-slate-100">{h.ticker}</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{h.ticker}</span>
                         {h.is_retirement && (
-                          <span className="ml-1.5 text-[9px] text-amber-500 bg-amber-950 px-1 py-0.5 rounded">SUPER</span>
+                          <span className="ml-1.5 text-[9px] text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950 px-1 py-0.5 rounded border border-amber-200 dark:border-transparent">SUPER</span>
                         )}
                       </div>
                       <div className="text-xs text-slate-500 truncate max-w-[120px]">{h.name}</div>
@@ -255,16 +255,16 @@ export default function PortfolioPage() {
                         {h.asset_class}
                       </span>
                     </td>
-                    <td className="table-td text-right text-slate-400">
+                    <td className="table-td text-right text-slate-600 dark:text-slate-400">
                       {h.total_units.toLocaleString("en-AU", { maximumFractionDigits: 4 })}
                     </td>
-                    <td className="table-td text-right text-slate-300">
+                    <td className="table-td text-right text-slate-700 dark:text-slate-300">
                       {formatAUD(h.current_price)}
                     </td>
-                    <td className="table-td text-right font-semibold text-slate-100">
+                    <td className="table-td text-right font-semibold text-slate-900 dark:text-slate-100">
                       {formatAUD(h.market_value)}
                     </td>
-                    <td className="table-td text-right text-slate-400">
+                    <td className="table-td text-right text-slate-600 dark:text-slate-400">
                       {formatAUD(h.cost_base)}
                     </td>
                     <td className={`table-td text-right font-medium ${gainColour(h.unrealised_gain)}`}>
@@ -285,10 +285,10 @@ export default function PortfolioPage() {
             </tbody>
             {filtered.length > 0 && (
               <tfoot>
-                <tr className="border-t-2 border-slate-700">
-                  <td className="table-td text-left font-semibold text-slate-300" colSpan={4}>Total</td>
-                  <td className="table-td text-right font-bold text-slate-100">{formatAUD(totalValue)}</td>
-                  <td className="table-td text-right font-semibold text-slate-400">{formatAUD(totalCost)}</td>
+                <tr className="border-t-2 border-slate-200 dark:border-slate-700">
+                  <td className="table-td text-left font-semibold text-slate-700 dark:text-slate-300" colSpan={4}>Total</td>
+                  <td className="table-td text-right font-bold text-slate-900 dark:text-slate-100">{formatAUD(totalValue)}</td>
+                  <td className="table-td text-right font-semibold text-slate-600 dark:text-slate-400">{formatAUD(totalCost)}</td>
                   <td className={`table-td text-right font-bold ${gainColour(totalGain)}`}>
                     {totalGain >= 0 ? "+" : ""}{formatAUD(totalGain)}
                   </td>

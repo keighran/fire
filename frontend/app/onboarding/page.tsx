@@ -99,15 +99,15 @@ interface Liability   { name: string; type: string; balance: string; totalOrigin
 // ---------------------------------------------------------------------------
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <label className="block text-sm font-medium text-slate-300 mb-1">{children}</label>;
+  return <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{children}</label>;
 }
 
 function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 text-sm
-        placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent
+      className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-slate-100 text-sm
+        placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
         ${props.className ?? ""}`}
     />
   );
@@ -117,8 +117,8 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 text-sm
-        focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent ${props.className ?? ""}`}
+      className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-slate-100 text-sm
+        focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${props.className ?? ""}`}
     />
   );
 }
@@ -135,11 +135,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function Tooltip({ text, onClose }: { text: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
-        <p className="text-slate-200 text-sm leading-relaxed">{text}</p>
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
+        <p className="text-slate-800 dark:text-slate-200 text-sm leading-relaxed">{text}</p>
         <button
           onClick={onClose}
-          className="mt-4 w-full bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-medium py-2 rounded-lg transition-colors"
+          className="mt-4 w-full bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium py-2 rounded-lg transition-colors"
         >
           Got it
         </button>
@@ -489,11 +489,11 @@ export default function OnboardingPage() {
         <div className="space-y-6 text-center">
           <div className="text-6xl">🇦🇺</div>
           <div className="space-y-3">
-            <p className="text-slate-300 text-sm leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
               WealthTrack is built for the Australian FI/RE community — modelled on the
               CompiledSanity Personal Wealth Template but with live market data and full portfolio analytics.
             </p>
-            <p className="text-slate-400 text-sm leading-relaxed">
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
               We&apos;ll walk you through setting up your accounts, income, and goals.
               Most steps are optional — you can always fill in details later.
             </p>
@@ -504,9 +504,9 @@ export default function OnboardingPage() {
               { icon: "🔥", label: "FIRE Projections" },
               { icon: "🧾", label: "CGT Calculations" },
             ].map((f) => (
-              <div key={f.label} className="bg-slate-800/60 rounded-xl p-3 text-center">
+              <div key={f.label} className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 text-center border border-slate-200 dark:border-transparent">
                 <div className="text-2xl mb-1">{f.icon}</div>
-                <div className="text-xs text-slate-400">{f.label}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{f.label}</div>
               </div>
             ))}
           </div>
@@ -612,9 +612,9 @@ export default function OnboardingPage() {
       return (
         <div className="space-y-4">
           {cashAccounts.map((acc, i) => (
-            <div key={i} className="bg-slate-800/50 rounded-xl p-4 space-y-3">
+            <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-3 border border-slate-200 dark:border-transparent">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-400">Account {i + 1}</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Account {i + 1}</span>
                 {cashAccounts.length > 1 && (
                   <RemoveButton onClick={() => setCashAccounts((a) => a.filter((_, j) => j !== i))} />
                 )}
@@ -645,12 +645,12 @@ export default function OnboardingPage() {
       return (
         <div className="space-y-4">
           <p className="text-xs text-slate-500">
-            Use <span className="text-slate-300">.AX</span> suffix for ASX stocks (e.g. <span className="text-slate-300">VAS.AX</span>, <span className="text-slate-300">A200.AX</span>). US stocks use the ticker directly (e.g. <span className="text-slate-300">AAPL</span>).
+            Use <span className="font-semibold text-slate-700 dark:text-slate-300">.AX</span> suffix for ASX stocks (e.g. <span className="font-semibold text-slate-700 dark:text-slate-300">VAS.AX</span>, <span className="font-semibold text-slate-700 dark:text-slate-300">A200.AX</span>). US stocks use the ticker directly (e.g. <span className="font-semibold text-slate-700 dark:text-slate-300">AAPL</span>).
           </p>
           {investments.map((inv, i) => (
-            <div key={i} className="bg-slate-800/50 rounded-xl p-4 space-y-3">
+            <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-3 border border-slate-200 dark:border-transparent">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-400">Holding {i + 1}</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Holding {i + 1}</span>
                 {investments.length > 1 && (
                   <RemoveButton onClick={() => setInvestments((a) => a.filter((_, j) => j !== i))} />
                 )}
@@ -691,9 +691,9 @@ export default function OnboardingPage() {
       return (
         <div className="space-y-4">
           {superFunds.map((sf, i) => (
-            <div key={i} className="bg-slate-800/50 rounded-xl p-4 space-y-3">
+            <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-3 border border-slate-200 dark:border-transparent">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-400">Super Fund {i + 1}</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Super Fund {i + 1}</span>
                 {superFunds.length > 1 && (
                   <RemoveButton onClick={() => setSuperFunds((a) => a.filter((_, j) => j !== i))} />
                 )}
@@ -737,9 +737,9 @@ export default function OnboardingPage() {
       return (
         <div className="space-y-4">
           {properties.map((prop, i) => (
-            <div key={i} className="bg-slate-800/50 rounded-xl p-4 space-y-3">
+            <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-3 border border-slate-200 dark:border-transparent">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-400">Property {i + 1}</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Property {i + 1}</span>
                 {properties.length > 1 && (
                   <RemoveButton onClick={() => setProperties((a) => a.filter((_, j) => j !== i))} />
                 )}
@@ -780,9 +780,9 @@ export default function OnboardingPage() {
       return (
         <div className="space-y-4">
           {liabilities.map((lib, i) => (
-            <div key={i} className="bg-slate-800/50 rounded-xl p-4 space-y-3">
+            <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-3 border border-slate-200 dark:border-transparent">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-400">Debt {i + 1}</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Debt {i + 1}</span>
                 {liabilities.length > 1 && (
                   <RemoveButton onClick={() => setLiabilities((a) => a.filter((_, j) => j !== i))} />
                 )}
@@ -901,7 +901,7 @@ export default function OnboardingPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center overflow-y-auto py-8 px-4">
+    <div className="fixed inset-0 bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center overflow-y-auto py-8 px-4 transition-colors duration-200">
       {showTooltip && step.tooltip && (
         <Tooltip text={step.tooltip} onClose={() => setShowTooltip(false)} />
       )}
@@ -913,7 +913,7 @@ export default function OnboardingPage() {
             <span className="text-xs text-slate-500">Step {stepIdx + 1} of {STEPS.length}</span>
             <span className="text-xs text-slate-500">{progress}% complete</span>
           </div>
-          <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
             <div
               className="h-full bg-emerald-600 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -928,7 +928,7 @@ export default function OnboardingPage() {
                 className={`flex-shrink-0 h-1 rounded-full transition-all duration-300 ${
                   i < stepIdx ? "w-6 bg-emerald-600" :
                   i === stepIdx ? "w-8 bg-emerald-500" :
-                  "w-4 bg-slate-700"
+                  "w-4 bg-slate-200 dark:bg-slate-700"
                 }`}
               />
             ))}
@@ -936,18 +936,18 @@ export default function OnboardingPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl transition-all duration-200">
           {/* Header */}
           <div className="flex items-start justify-between mb-5">
             <div>
-              <h1 className="text-lg font-semibold text-slate-100">{step.title}</h1>
-              <p className="text-sm text-slate-400 mt-0.5">{step.subtitle}</p>
+              <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{step.title}</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{step.subtitle}</p>
             </div>
             {step.tooltip && (
               <button
                 onClick={() => setShowTooltip(true)}
-                className="flex-shrink-0 ml-3 w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700
-                  text-slate-400 hover:text-slate-200 text-sm font-medium transition-colors flex items-center justify-center"
+                className="flex-shrink-0 ml-3 w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700
+                  text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium transition-colors flex items-center justify-center"
                 title="What is this?"
               >
                 ?
@@ -960,19 +960,19 @@ export default function OnboardingPage() {
 
           {/* Error */}
           {error && (
-            <div className="mt-4 p-3 bg-red-950/50 border border-red-900/60 rounded-lg text-xs text-red-400">
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 rounded-lg text-xs text-red-600 dark:text-red-400">
               {error}
             </div>
           )}
 
           {/* Navigation */}
-          <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div>
               {stepIdx > 0 && (
                 <button
                   onClick={handleBack}
                   disabled={saving}
-                  className="text-sm text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-40"
+                  className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors disabled:opacity-40"
                 >
                   ← Back
                 </button>
@@ -984,7 +984,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={handleSkip}
                   disabled={saving}
-                  className="text-sm text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-40"
+                  className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors disabled:opacity-40"
                 >
                   Skip for now
                 </button>
@@ -992,7 +992,7 @@ export default function OnboardingPage() {
               <button
                 onClick={handleNext}
                 disabled={saving}
-                className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-sm font-medium
+                className="bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-700 dark:hover:bg-emerald-600 disabled:opacity-50 text-white text-sm font-medium
                   px-5 py-2 rounded-lg transition-colors min-w-[100px] flex items-center justify-center gap-2"
               >
                 {saving ? (
@@ -1010,9 +1010,8 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* Step labels */}
         <div className="mt-4 flex justify-center">
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             {STEPS.filter((s) => !s.required).length} optional steps can be skipped and completed later
           </p>
         </div>

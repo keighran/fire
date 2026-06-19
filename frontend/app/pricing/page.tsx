@@ -76,8 +76,8 @@ export default async function PricingPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-white mb-3">Simple, transparent pricing</h1>
-        <p className="text-slate-400 text-lg">
+        <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-3">Simple, transparent pricing</h1>
+        <p className="text-slate-600 dark:text-slate-400 text-lg">
           Built for the Australian FI/RE community. Cancel anytime.
         </p>
       </div>

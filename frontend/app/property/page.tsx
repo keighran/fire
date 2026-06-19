@@ -56,7 +56,7 @@ export default async function PropertyPage() {
                 {/* Header */}
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="font-semibold text-slate-100">{prop.account_name}</h2>
+                    <h2 className="font-semibold text-slate-900 dark:text-slate-100">{prop.account_name}</h2>
                     <p className="text-xs text-slate-500 mt-0.5">
                       Purchased {formatAUD(prop.purchase_price)}
                     </p>
@@ -68,17 +68,17 @@ export default async function PropertyPage() {
 
                 {/* Valuation vs Mortgage */}
                 <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="bg-slate-800/60 rounded-lg p-3">
+                  <div className="bg-slate-100 dark:bg-slate-800/60 rounded-lg p-3">
                     <p className="text-xs text-slate-500 mb-1">Current Value</p>
-                    <p className="text-sm font-semibold text-slate-100">{formatAUD(prop.current_valuation)}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatAUD(prop.current_valuation)}</p>
                   </div>
-                  <div className="bg-slate-800/60 rounded-lg p-3">
+                  <div className="bg-slate-100 dark:bg-slate-800/60 rounded-lg p-3">
                     <p className="text-xs text-slate-500 mb-1">Mortgage</p>
-                    <p className="text-sm font-semibold text-red-400">{formatAUD(prop.mortgage_balance)}</p>
+                    <p className="text-sm font-semibold text-red-650 dark:text-red-400">{formatAUD(prop.mortgage_balance)}</p>
                   </div>
-                  <div className="bg-slate-800/60 rounded-lg p-3">
+                  <div className="bg-slate-100 dark:bg-slate-800/60 rounded-lg p-3">
                     <p className="text-xs text-slate-500 mb-1">Equity</p>
-                    <p className="text-sm font-semibold text-emerald-400">{formatAUD(prop.net_equity)}</p>
+                    <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{formatAUD(prop.net_equity)}</p>
                   </div>
                 </div>
 
@@ -96,7 +96,7 @@ export default async function PropertyPage() {
                     <span>Equity build</span>
                     <span>{mortgagePct.toFixed(1)}% of purchase price</span>
                   </div>
-                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full bg-emerald-500 transition-all"
                       style={{ width: `${mortgagePct}%` }}
@@ -106,7 +106,7 @@ export default async function PropertyPage() {
 
                 {/* Annual interest / principal */}
                 {(prop.total_interest_fees_paid > 0 || prop.total_principal_paid > 0) && (
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
                     <div>
                       <p className="text-xs text-slate-500 mb-0.5">Total Interest Paid</p>
                       <p className="text-sm text-red-400 font-medium">{formatAUD(prop.total_interest_fees_paid)}</p>

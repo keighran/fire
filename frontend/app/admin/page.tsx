@@ -36,18 +36,18 @@ interface AdminUser {
 // ---------------------------------------------------------------------------
 
 const TIER_COLOURS: Record<string, string> = {
-  Free:       "bg-slate-700 text-slate-300",
-  Pro:        "bg-emerald-900 text-emerald-300",
-  Enterprise: "bg-violet-900 text-violet-300",
+  Free:       "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent",
+  Pro:        "bg-emerald-50 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-300 border border-emerald-200 dark:border-transparent",
+  Enterprise: "bg-violet-50 dark:bg-violet-900 text-violet-650 dark:text-violet-300 border border-violet-200 dark:border-transparent",
 };
 
 const TIERS = ["Free", "Pro", "Enterprise"];
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 transition-all duration-200">
       <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">{label}</p>
-      <p className="text-2xl font-semibold text-slate-100">{value}</p>
+      <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{value}</p>
       {sub && <p className="text-xs text-slate-500 mt-1">{sub}</p>}
     </div>
   );
@@ -150,13 +150,12 @@ export default function AdminPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100">Admin Panel</h1>
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Admin Panel</h1>
           <p className="text-sm text-slate-500 mt-0.5">WealthTrack AU — SaaS Management</p>
         </div>
         <button
           onClick={fetchData}
-          className="text-sm text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600
-            px-3 py-1.5 rounded-lg transition-colors"
+          className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg transition-colors"
         >
           ↻ Refresh
         </button>
@@ -164,12 +163,12 @@ export default function AdminPage() {
 
       {/* Flash message */}
       {actionMsg && (
-        <div className="bg-emerald-950 border border-emerald-800 text-emerald-300 text-sm px-4 py-2.5 rounded-lg">
+        <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-sm px-4 py-2.5 rounded-lg">
           {actionMsg}
         </div>
       )}
       {error && (
-        <div className="bg-red-950 border border-red-900 text-red-400 text-sm px-4 py-2.5 rounded-lg">
+        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-red-650 dark:text-red-400 text-sm px-4 py-2.5 rounded-lg">
           {error}
         </div>
       )}
@@ -180,15 +179,15 @@ export default function AdminPage() {
           <StatCard label="Total Users" value={stats.total_users} />
           <StatCard label="Transactions" value={stats.total_transactions.toLocaleString()} />
           <StatCard label="Accounts" value={stats.total_accounts.toLocaleString()} />
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 transition-all duration-200">
             <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Users by Tier</p>
             <div className="flex flex-col gap-1.5">
               {Object.entries(stats.users_by_tier).map(([tier, count]) => (
                 <div key={tier} className="flex items-center justify-between">
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${TIER_COLOURS[tier] ?? "bg-slate-700 text-slate-300"}`}>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${TIER_COLOURS[tier] ?? "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"}`}>
                     {tier}
                   </span>
-                  <span className="text-sm font-semibold text-slate-200">{count}</span>
+                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{count}</span>
                 </div>
               ))}
             </div>
@@ -197,17 +196,17 @@ export default function AdminPage() {
       )}
 
       {/* Users table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden transition-all duration-200">
         {/* Table header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-800 gap-4">
-          <h2 className="text-sm font-semibold text-slate-200">Users</h2>
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 gap-4">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-200">Users</h2>
           <input
             type="search"
             placeholder="Search by email…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-200
-              placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-600 w-64"
+            className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-800 dark:text-slate-200
+              placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 w-64"
           />
         </div>
 
@@ -219,7 +218,7 @@ export default function AdminPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-800 text-xs text-slate-500 uppercase tracking-wide">
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500 uppercase tracking-wide">
                   <th className="text-left px-4 py-3 font-medium">User</th>
                   <th className="text-left px-4 py-3 font-medium">Joined</th>
                   <th className="text-center px-4 py-3 font-medium">Tier</th>
@@ -229,17 +228,17 @@ export default function AdminPage() {
                   <th className="text-right px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                 {users.map((u) => (
-                  <tr key={u.id} className={`hover:bg-slate-800/30 transition-colors ${!u.is_active ? "opacity-50" : ""}`}>
+                  <tr key={u.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${!u.is_active ? "opacity-50" : ""}`}>
                     {/* User */}
                     <td className="px-4 py-3">
-                      <div className="font-medium text-slate-200 truncate max-w-[200px]">{u.email}</div>
+                      <div className="font-medium text-slate-900 dark:text-slate-200 truncate max-w-[200px]">{u.email}</div>
                       <div className="text-xs text-slate-500 truncate">{u.display_name}</div>
                     </td>
 
                     {/* Joined */}
-                    <td className="px-4 py-3 text-slate-400 whitespace-nowrap">
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap">
                       {new Date(u.created_at).toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
 
@@ -248,25 +247,27 @@ export default function AdminPage() {
                       <select
                         value={u.tier}
                         onChange={(e) => setTier(u.id, e.target.value)}
-                        className={`text-xs font-medium px-2 py-1 rounded border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-600
-                          ${TIER_COLOURS[u.tier] ?? "bg-slate-700 text-slate-300"}`}
+                        className={`text-xs font-medium px-2 py-1 rounded border border-slate-200 dark:border-transparent cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500
+                          ${TIER_COLOURS[u.tier] ?? "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300"}`}
                       >
                         {TIERS.map((t) => (
-                          <option key={t} value={t} className="bg-slate-800 text-slate-200">{t}</option>
+                          <option key={t} value={t} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">{t}</option>
                         ))}
                       </select>
                     </td>
 
                     {/* Transaction count */}
-                    <td className="px-4 py-3 text-center text-slate-400">{u.transaction_count}</td>
+                    <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400">{u.transaction_count}</td>
 
                     {/* Account count */}
-                    <td className="px-4 py-3 text-center text-slate-400">{u.account_count}</td>
+                    <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400">{u.account_count}</td>
 
                     {/* Active status */}
                     <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                        ${u.is_active ? "bg-emerald-950 text-emerald-400" : "bg-red-950 text-red-400"}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold
+                        ${u.is_active 
+                          ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-transparent" 
+                          : "bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 border border-red-200 dark:border-transparent"}`}>
                         {u.is_active ? "Active" : "Suspended"}
                       </span>
                     </td>
@@ -276,18 +277,17 @@ export default function AdminPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => toggleActive(u.id, u.is_active)}
-                          className={`text-xs px-2.5 py-1 rounded border transition-colors
+                          className={`text-xs px-2.5 py-1 rounded border transition-colors font-semibold
                             ${u.is_active
-                              ? "border-yellow-800 text-yellow-500 hover:bg-yellow-950"
-                              : "border-emerald-800 text-emerald-500 hover:bg-emerald-950"
+                              ? "border-yellow-600 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-500 dark:hover:bg-yellow-950"
+                              : "border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-500 dark:hover:bg-emerald-950"
                             }`}
                         >
                           {u.is_active ? "Suspend" : "Reactivate"}
                         </button>
                         <button
                           onClick={() => deleteUser(u.id, u.email)}
-                          className="text-xs px-2.5 py-1 rounded border border-red-900 text-red-500
-                            hover:bg-red-950 transition-colors"
+                          className="text-xs px-2.5 py-1 rounded border border-red-200 text-red-500 hover:bg-red-50 dark:border-red-900 dark:text-red-500 dark:hover:bg-red-955 transition-colors font-semibold"
                         >
                           Delete
                         </button>

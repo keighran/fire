@@ -7,9 +7,9 @@ interface Props {
 
 function StatRow({ label, value, highlight = false }: { label: string; value: number; highlight?: boolean }) {
   return (
-    <div className="flex justify-between items-center py-1.5 border-t border-slate-800">
+    <div className="flex justify-between items-center py-1.5 border-t border-slate-200 dark:border-slate-800">
       <span className="text-xs text-slate-500">{label}</span>
-      <span className={`text-sm font-medium ${highlight ? "text-red-400" : "text-slate-200"}`}>
+      <span className={`text-sm font-medium ${highlight ? "text-red-600 dark:text-red-400" : "text-slate-700 dark:text-slate-200"}`}>
         {formatAUD(value)}
       </span>
     </div>

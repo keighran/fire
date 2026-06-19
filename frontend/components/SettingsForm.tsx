@@ -93,7 +93,7 @@ export default function SettingsForm({ initial }: Props) {
     <form onSubmit={handleSubmit} className="space-y-8">
       {SECTIONS.map(({ title, fields }) => (
         <div key={title} className="card space-y-4">
-          <h2 className="text-sm font-semibold text-slate-300 border-b border-slate-800 pb-3">{title}</h2>
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-3">{title}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {fields.map(({ key, label, type, options, hint, pct }) => {
               const value = form[key];
@@ -102,13 +102,13 @@ export default function SettingsForm({ initial }: Props) {
                 return (
                   <div key={key} className="flex items-center justify-between py-2">
                     <div>
-                      <label className="text-sm text-slate-300">{label}</label>
-                      {hint && <p className="text-xs text-slate-500 mt-0.5">{hint}</p>}
+                      <label className="text-sm text-slate-700 dark:text-slate-300">{label}</label>
+                      {hint && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
                     </div>
                     <button
                       type="button"
                       onClick={() => set(key, !value)}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${value ? "bg-emerald-600" : "bg-slate-700"}`}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${value ? "bg-emerald-600" : "bg-slate-200 dark:bg-slate-700"}`}
                     >
                       <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${value ? "left-6" : "left-1"}`} />
                     </button>
@@ -119,15 +119,15 @@ export default function SettingsForm({ initial }: Props) {
               if (type === "select") {
                 return (
                   <div key={key}>
-                    <label className="block text-xs text-slate-500 mb-1">{label}</label>
+                    <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">{label}</label>
                     <select
                       value={String(value ?? "")}
                       onChange={(e) => set(key, e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     >
                       {options?.map((o) => <option key={o} value={o}>{o}</option>)}
                     </select>
-                    {hint && <p className="text-xs text-slate-600 mt-1">{hint}</p>}
+                    {hint && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{hint}</p>}
                   </div>
                 );
               }
@@ -135,7 +135,7 @@ export default function SettingsForm({ initial }: Props) {
               const numVal = pct ? Number(value) * 100 : Number(value ?? 0);
               return (
                 <div key={key}>
-                  <label className="block text-xs text-slate-500 mb-1">
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                     {label} {pct ? "(%)": ""}
                   </label>
                   <input
@@ -146,9 +146,9 @@ export default function SettingsForm({ initial }: Props) {
                       const raw = parseFloat(e.target.value);
                       set(key, isNaN(raw) ? null : pct ? raw / 100 : raw);
                     }}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                   />
-                  {hint && <p className="text-xs text-slate-600 mt-1">{hint}</p>}
+                  {hint && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{hint}</p>}
                 </div>
               );
             })}
@@ -164,8 +164,8 @@ export default function SettingsForm({ initial }: Props) {
         >
           {status === "saving" ? "Saving…" : "Save settings"}
         </button>
-        {status === "saved"  && <span className="text-emerald-400 text-sm">✓ Saved</span>}
-        {status === "error"  && <span className="text-red-400 text-sm">Save failed — please try again</span>}
+        {status === "saved"  && <span className="text-emerald-500 dark:text-emerald-400 text-sm">✓ Saved</span>}
+        {status === "error"  && <span className="text-red-500 dark:text-red-400 text-sm">Save failed — please try again</span>}
       </div>
     </form>
   );
