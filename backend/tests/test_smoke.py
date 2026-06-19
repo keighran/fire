@@ -41,7 +41,26 @@ def client_fixture(session: Session):
     def get_session_override():
         return session
 
+    from app.auth.clerk import get_current_user
+    from sqlmodel import select
+
+    def get_current_user_override():
+        user = session.exec(select(User)).first()
+        if not user:
+            from passlib.context import CryptContext
+            pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
+            user = User(email="smoke@test.local", display_name="Smoke", hashed_password=pwd.hash("test"))
+            session.add(user)
+            session.flush()
+            from app.models import Subscription, SubscriptionTier, SubscriptionStatus
+            sub = Subscription(user_id=user.id, tier=SubscriptionTier.PRO, status=SubscriptionStatus.ACTIVE)
+            session.add(sub)
+            session.commit()
+            session.refresh(user)
+        return user
+
     app.dependency_overrides[get_session] = get_session_override
+    app.dependency_overrides[get_current_user] = get_current_user_override
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
@@ -58,6 +77,10 @@ def seed_db(session: Session):
     user = User(email="smoke@test.local", display_name="Smoke", hashed_password=pwd.hash("test"))
     session.add(user)
     session.flush()
+
+    from app.models import Subscription, SubscriptionTier, SubscriptionStatus
+    sub = Subscription(user_id=user.id, tier=SubscriptionTier.PRO, status=SubscriptionStatus.ACTIVE)
+    session.add(sub)
 
     settings = UserSettings(
         user_id=user.id,

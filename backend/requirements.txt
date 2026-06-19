@@ -30,6 +30,7 @@ slowapi==0.1.9
 
 # Password hashing (kept for dev/test seed only — Clerk handles prod auth)
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 python-multipart==0.0.9
 
 # Error monitoring (optional — activated when SENTRY_DSN env var is set)

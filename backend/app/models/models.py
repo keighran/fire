@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
@@ -5,6 +6,34 @@ from typing import List, Optional
 
 from sqlalchemy import Index
 from sqlmodel import Field, Relationship, SQLModel
+
+# Patch SQLModel for Python 3.14 PEP 649 string annotation resolution compatibility
+import re
+import sqlmodel._compat
+import sqlmodel.main
+_orig_get_relationship_to = sqlmodel._compat.get_relationship_to
+
+def _patched_get_relationship_to(name: str, rel_info: any, annotation: any) -> any:
+    if isinstance(annotation, str):
+        s = annotation.strip()
+        s = re.sub(r'\s*\|\s*None\b', '', s)
+        s = re.sub(r'\bNone\s*\|\s*', '', s)
+        match_list = re.match(r'^(?:typing\.)?(?:List|list)\[(.*)\]$', s)
+        if match_list:
+            s = match_list.group(1).strip()
+        match_opt = re.match(r'^(?:typing\.)?(?:Optional|Union)\[(.*)\]$', s)
+        if match_opt:
+            inner = match_opt.group(1).strip()
+            parts = [p.strip() for p in inner.split(',')]
+            parts = [p for p in parts if p != 'None']
+            if parts:
+                s = parts[0]
+        s = s.strip("'\"")
+        return s
+    return _orig_get_relationship_to(name, rel_info, annotation)
+
+sqlmodel._compat.get_relationship_to = _patched_get_relationship_to
+sqlmodel.main.get_relationship_to = _patched_get_relationship_to
 
 
 # ---------------------------------------------------------------------------
@@ -224,7 +253,7 @@ class Transaction(SQLModel, table=True):
     asset_id: Optional[int] = Field(foreign_key="assets.id", default=None, index=True)
 
     type: TransactionType
-    date: datetime = Field(index=True)
+    date: datetime = Field()
 
     units: Optional[Decimal] = Field(default=None, max_digits=18, decimal_places=8)
     price_per_unit: Optional[Decimal] = Field(default=None, max_digits=18, decimal_places=4)
