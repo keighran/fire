@@ -1,0 +1,40 @@
+# Core framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+
+# Database
+sqlmodel==0.0.22
+sqlalchemy==2.0.51
+alembic==1.13.1
+psycopg2-binary==2.9.12
+
+# Environment
+python-dotenv==1.0.1
+
+# Market data
+yfinance==0.2.40
+requests==2.32.3
+
+# Auth — Clerk JWT verification
+python-jose[cryptography]==3.3.0
+httpx==0.27.0
+
+# Clerk webhook signature verification
+svix==1.24.0
+
+# Billing
+stripe==10.5.0
+
+# Rate limiting
+slowapi==0.1.9
+
+# Password hashing (kept for dev/test seed only — Clerk handles prod auth)
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9
+
+# Error monitoring (optional — activated when SENTRY_DSN env var is set)
+sentry-sdk[fastapi]==2.7.0
+
+# Testing
+pytest==8.2.0
+pytest-asyncio==0.23.6
