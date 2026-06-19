@@ -187,9 +187,18 @@ export default function OnboardingPage() {
 
   // --- Step 2: Income ---
   const [salary, setSalary] = useState("");
-  const [payFreq, setPayFreq] = useState("fortnightly");
+  const [payFreq, setPayFreq] = useState("Fortnightly");
   const [taxRate, setTaxRate] = useState("32.5");
   const [currency, setCurrency] = useState("AUD");
+
+  const autoTaxRate = (raw: string) => {
+    const n = parseFloat(raw.replace(/,/g, "")) || 0;
+    if (n <= 18200) return "0";
+    if (n <= 45000) return "19";
+    if (n <= 120000) return "32.5";
+    if (n <= 180000) return "37";
+    return "45";
+  };
 
   // --- Step 3: Preferences ---
   const [cgtMethod, setCgtMethod] = useState("fifo");
@@ -241,7 +250,7 @@ export default function OnboardingPage() {
     await api.updateSettings(token, {
       base_currency: currency,
       pay_frequency: payFreq as any,
-      employment_salary: parseFloat(salary) || 0,
+      employment_salary: parseFloat(salary.replace(/,/g, "")) || 0,
       marginal_tax_rate: parseFloat(taxRate) / 100,
       default_brokerage_fee: parseFloat(brokerage) || 9.95,
       cgt_method: cgtMethod as any,
@@ -518,13 +527,15 @@ export default function OnboardingPage() {
       return (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Annual Gross Salary">
+            <Field label="Annual Gross Salary ($)">
               <Input
-                type="number"
-                placeholder="95000"
+                type="text"
+                placeholder="95,000"
                 value={salary}
-                onChange={(e) => setSalary(e.target.value)}
-                min="0"
+                onChange={(e) => {
+                  setSalary(e.target.value);
+                  setTaxRate(autoTaxRate(e.target.value));
+                }}
               />
             </Field>
             <Field label="Base Currency">
@@ -538,24 +549,27 @@ export default function OnboardingPage() {
           <div className="grid grid-cols-2 gap-4">
             <Field label="Pay Frequency">
               <Select value={payFreq} onChange={(e) => setPayFreq(e.target.value)}>
-                <option value="weekly">Weekly</option>
-                <option value="fortnightly">Fortnightly</option>
-                <option value="twice_monthly">Twice Monthly</option>
-                <option value="monthly">Monthly</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Fortnightly">Fortnightly</option>
+                <option value="Twice Monthly">Twice Monthly</option>
+                <option value="Monthly">Monthly</option>
               </Select>
             </Field>
             <Field label="Marginal Tax Rate (%)">
-              <Select value={taxRate} onChange={(e) => setTaxRate(e.target.value)}>
-                <option value="0">0% — Nil / Tax-free threshold</option>
-                <option value="19">19% — $18,201–$45,000</option>
-                <option value="32.5">32.5% — $45,001–$120,000</option>
-                <option value="37">37% — $120,001–$180,000</option>
-                <option value="45">45% — $180,001+</option>
-              </Select>
+              <div className="relative">
+                <Select value={taxRate} onChange={(e) => setTaxRate(e.target.value)}>
+                  <option value="0">0% — ≤$18,200</option>
+                  <option value="19">19% — $18,201–$45,000</option>
+                  <option value="32.5">32.5% — $45,001–$120,000</option>
+                  <option value="37">37% — $120,001–$180,000</option>
+                  <option value="45">45% — $180,001+</option>
+                </Select>
+                <span className="absolute right-8 top-1/2 -translate-y-1/2 text-xs text-emerald-500 pointer-events-none">auto</span>
+              </div>
             </Field>
           </div>
           <p className="text-xs text-slate-500">
-            Your salary is used for savings rate and budget calculations only — it is never shared.
+            Tax rate is auto-selected from ATO 2024–25 brackets based on your salary. You can override it.
           </p>
         </div>
       );
