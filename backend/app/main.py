@@ -47,6 +47,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://192.168.50.226:3000",
+        "http://fire.astradigital.com.au",
+        "https://fire.astradigital.com.au",
         "https://*.vercel.app",
     ],
     allow_credentials=True,
