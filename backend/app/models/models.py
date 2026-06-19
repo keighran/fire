@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
+from typing import List, Optional
 
 from sqlalchemy import Index
 from sqlmodel import Field, Relationship, SQLModel
@@ -77,29 +76,27 @@ class SubscriptionStatus(str, Enum):
 class User(SQLModel, table=True):
     __tablename__ = "users"
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(index=True, unique=True, max_length=255)
     display_name: str = Field(default="", max_length=100)
-    # Nullable — legacy password stub; Clerk is the primary auth provider.
-    hashed_password: str | None = Field(default=None)
-    # Clerk user ID (e.g. "user_2abc..."). Unique index for fast JWT lookup.
-    clerk_user_id: str | None = Field(default=None, index=True, unique=True, max_length=128)
+    hashed_password: Optional[str] = Field(default=None)
+    clerk_user_id: Optional[str] = Field(default=None, index=True, unique=True, max_length=128)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_active: bool = Field(default=True)
 
-    accounts: list[Account] = Relationship(
+    accounts: List["Account"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
-    settings: UserSettings | None = Relationship(
+    settings: Optional["UserSettings"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
-    subscription: Subscription | None = Relationship(
+    subscription: Optional["Subscription"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
-    monthly_snapshots: list[MonthlySnapshot] = Relationship(
+    monthly_snapshots: List["MonthlySnapshot"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
@@ -112,20 +109,20 @@ class User(SQLModel, table=True):
 class Subscription(SQLModel, table=True):
     __tablename__ = "subscriptions"
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", unique=True, index=True)
     tier: SubscriptionTier = Field(default=SubscriptionTier.FREE)
     status: SubscriptionStatus = Field(default=SubscriptionStatus.ACTIVE)
-    stripe_customer_id: str | None = Field(default=None, index=True, max_length=100)
-    stripe_subscription_id: str | None = Field(default=None, index=True, max_length=100)
-    stripe_price_id: str | None = Field(default=None, max_length=100)
-    current_period_start: datetime | None = None
-    current_period_end: datetime | None = None
+    stripe_customer_id: Optional[str] = Field(default=None, index=True, max_length=100)
+    stripe_subscription_id: Optional[str] = Field(default=None, index=True, max_length=100)
+    stripe_price_id: Optional[str] = Field(default=None, max_length=100)
+    current_period_start: Optional[datetime] = None
+    current_period_end: Optional[datetime] = None
     cancel_at_period_end: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    user: User | None = Relationship(back_populates="subscription")
+    user: Optional["User"] = Relationship(back_populates="subscription")
 
 
 # ---------------------------------------------------------------------------
@@ -135,7 +132,7 @@ class Subscription(SQLModel, table=True):
 class UserSettings(SQLModel, table=True):
     __tablename__ = "user_settings"
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", unique=True)
 
     base_currency: str = Field(default="AUD", max_length=3)
@@ -155,14 +152,14 @@ class UserSettings(SQLModel, table=True):
     fire_investment_return_rate: Decimal = Field(default=Decimal("0.07"), max_digits=5, decimal_places=4)
     fire_inflation_rate: Decimal = Field(default=Decimal("0.03"), max_digits=5, decimal_places=4)
     fire_target_annual_spend: Decimal = Field(default=Decimal("0.00"), max_digits=12, decimal_places=2)
-    fire_current_age: int | None = None
-    fire_target_retire_age: int | None = None
+    fire_current_age: Optional[int] = None
+    fire_target_retire_age: Optional[int] = None
     fire_life_expectancy: int = Field(default=90)
 
     bank_interest_rate: Decimal = Field(default=Decimal("0.05"), max_digits=5, decimal_places=4)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    user: User | None = Relationship(back_populates="settings")
+    user: Optional["User"] = Relationship(back_populates="settings")
 
 
 # ---------------------------------------------------------------------------
@@ -175,18 +172,18 @@ class Account(SQLModel, table=True):
         Index("ix_accounts_user_type", "user_id", "type"),
     )
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", index=True)
     name: str = Field(index=True, max_length=100)
     type: AccountType
     institution: str = Field(default="", max_length=100)
     currency: str = Field(default="AUD", max_length=3)
     is_retirement: bool = Field(default=False)
-    notes: str | None = Field(default=None, max_length=500)
+    notes: Optional[str] = Field(default=None, max_length=500)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    user: User | None = Relationship(back_populates="accounts")
-    transactions: list[Transaction] = Relationship(
+    user: Optional["User"] = Relationship(back_populates="accounts")
+    transactions: List["Transaction"] = Relationship(
         back_populates="account",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
@@ -199,7 +196,7 @@ class Account(SQLModel, table=True):
 class Asset(SQLModel, table=True):
     __tablename__ = "assets"
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     ticker: str = Field(index=True, unique=True, max_length=50)
     name: str = Field(max_length=200)
     category: AccountType
@@ -207,7 +204,7 @@ class Asset(SQLModel, table=True):
     current_price: Decimal = Field(default=Decimal("0.0000"), max_digits=18, decimal_places=4)
     last_updated: datetime = Field(default_factory=datetime.utcnow)
 
-    transactions: list[Transaction] = Relationship(back_populates="asset")
+    transactions: List["Transaction"] = Relationship(back_populates="asset")
 
 
 # ---------------------------------------------------------------------------
@@ -222,28 +219,28 @@ class Transaction(SQLModel, table=True):
         Index("ix_transactions_date", "date"),
     )
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     account_id: int = Field(foreign_key="accounts.id", index=True)
-    asset_id: int | None = Field(foreign_key="assets.id", default=None, index=True)
+    asset_id: Optional[int] = Field(foreign_key="assets.id", default=None, index=True)
 
     type: TransactionType
     date: datetime = Field(index=True)
 
-    units: Decimal | None = Field(default=None, max_digits=18, decimal_places=8)
-    price_per_unit: Decimal | None = Field(default=None, max_digits=18, decimal_places=4)
+    units: Optional[Decimal] = Field(default=None, max_digits=18, decimal_places=8)
+    price_per_unit: Optional[Decimal] = Field(default=None, max_digits=18, decimal_places=4)
 
     # GROSS transaction value. Net = amount - fees.
     # ATO cost base: cost_base = amount + fees (brokerage capitalised on BUY).
     amount: Decimal = Field(max_digits=18, decimal_places=2)
     fees: Decimal = Field(default=Decimal("0.00"), max_digits=10, decimal_places=2)
 
-    franking_percentage: Decimal | None = Field(default=None, max_digits=5, decimal_places=2)
+    franking_percentage: Optional[Decimal] = Field(default=None, max_digits=5, decimal_places=2)
     is_drp: bool = Field(default=False)
-    notes: str | None = Field(default=None, max_length=500)
+    notes: Optional[str] = Field(default=None, max_length=500)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    account: Account | None = Relationship(back_populates="transactions")
-    asset: Asset | None = Relationship(back_populates="transactions")
+    account: Optional["Account"] = Relationship(back_populates="transactions")
+    asset: Optional["Asset"] = Relationship(back_populates="transactions")
 
     @property
     def tax_year(self) -> str:
@@ -274,7 +271,7 @@ class MonthlySnapshot(SQLModel, table=True):
         Index("ix_snapshots_user_date", "user_id", "snapshot_date"),
     )
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", index=True)
     snapshot_date: datetime = Field(index=True)
 
@@ -307,4 +304,4 @@ class MonthlySnapshot(SQLModel, table=True):
     net_worth: Decimal = Field(default=Decimal("0.00"), max_digits=18, decimal_places=2)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    user: User | None = Relationship(back_populates="monthly_snapshots")
+    user: Optional["User"] = Relationship(back_populates="monthly_snapshots")
