@@ -383,6 +383,8 @@ export const api = {
     get<TransactionRow[]>(`/api/transactions${accountId ? `?account_id=${accountId}` : ""}`, token),
   createTransaction: (token: string, body: TransactionCreatePayload) =>
     post<{ id: number }>("/api/transactions", token, body),
+  updateTransaction: (token: string, id: number, body: Partial<TransactionCreatePayload>) =>
+    request<TransactionRow>("PUT", `/api/transactions/${id}`, token, body),
   deleteTransaction: (token: string, id: number) =>
     del<{ deleted: number }>(`/api/transactions/${id}`, token),
 

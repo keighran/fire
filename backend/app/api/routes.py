@@ -77,6 +77,18 @@ class TransactionCreate(BaseModel):
     notes: Optional[str] = None
 
 
+class TransactionUpdate(BaseModel):
+    type: Optional[TransactionType] = None
+    date: Optional[datetime] = None
+    units: Optional[Decimal] = None
+    price_per_unit: Optional[Decimal] = None
+    amount: Optional[Decimal] = None
+    fees: Optional[Decimal] = None
+    franking_percentage: Optional[Decimal] = None
+    is_drp: Optional[bool] = None
+    notes: Optional[str] = None
+
+
 class FIREProjectionRequest(BaseModel):
     current_net_worth: float
     annual_savings: float
@@ -316,6 +328,30 @@ def list_transactions(
     if asset_id:
         query = query.where(Transaction.asset_id == asset_id)
     return db.exec(query.order_by(Transaction.date.desc())).all()
+
+
+@router.put("/transactions/{txn_id}")
+@limiter.limit(LIMIT_WRITE)
+def update_transaction(
+    request: Request,
+    txn_id: int,
+    body: TransactionUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+):
+    txn = db.exec(
+        select(Transaction)
+        .join(Account)
+        .where(Transaction.id == txn_id, Account.user_id == current_user.id)
+    ).first()
+    if not txn:
+        raise HTTPException(404, "Transaction not found")
+    for field, value in body.model_dump(exclude_none=True).items():
+        setattr(txn, field, value)
+    db.add(txn)
+    db.commit()
+    db.refresh(txn)
+    return txn
 
 
 @router.delete("/transactions/{txn_id}")

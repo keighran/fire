@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { api, Holding } from "@/lib/api";
 import { formatAUD, gainColour } from "@/lib/format";
 import AddTransactionModal from "@/components/AddTransactionModal";
+import TransactionsManager from "@/components/TransactionsManager";
 
 const CLASS_COLOURS: Record<string, string> = {
   ETF:            "bg-emerald-500",
@@ -70,6 +71,7 @@ export default function PortfolioPage() {
   const [showRetirement, setShowRetirement] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showTxnModal, setShowTxnModal] = useState(false);
+  const [tab, setTab] = useState<"holdings" | "transactions">("holdings");
 
   const load = useCallback(async () => {
     const token = await getToken();
@@ -175,6 +177,22 @@ export default function PortfolioPage() {
           onSaved={load}
         />
       )}
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-lg w-fit">
+        {(["holdings", "transactions"] as const).map((t) => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
+              tab === t ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            }`}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {tab === "transactions" ? (
+        <TransactionsManager />
+      ) : (<>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -319,6 +337,7 @@ export default function PortfolioPage() {
           </table>
         </div>
       </div>
+      </>)}
     </div>
   );
 }
