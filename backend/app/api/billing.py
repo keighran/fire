@@ -26,10 +26,10 @@ router = APIRouter(prefix="/api/billing", tags=["billing"])
 # ---------------------------------------------------------------------------
 # Tier → Stripe Price ID mapping (set via environment variables)
 # ---------------------------------------------------------------------------
-PRICE_MAP: dict[str, SubscriptionTier] = {}
+PRICE_MAP: "dict[str, SubscriptionTier]" = {}
 
 
-def _stripe() -> stripe.Stripe:
+def _stripe():
     key = os.environ.get("STRIPE_SECRET_KEY", "")
     if not key:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Stripe not configured")
