@@ -970,7 +970,7 @@ export default function OnboardingPage() {
           </div>
 
           {/* Step body */}
-          <StepContent />
+          {StepContent()}
 
           {/* Error */}
           {error && (
