@@ -316,11 +316,143 @@ frontend/
 
 #### Remaining Next Steps
 - Transaction CSV import (CommSec export format)
-- Budget page frontend component
 - Dividends page with calendar view
-- Property page frontend component
-- Settings page (edit UserSettings via UI)
 - Monthly snapshot scheduler (EOMONTH cron)
-- Super balance manual entry UI
 - Sentry `sentry.client.config.ts` + `sentry.server.config.ts` for Next.js
-- Admin panel (super-user tier management)
+
+---
+
+### Session 3 — 2026-06-19 (Production Debugging + CRUD UI)
+
+#### Objective
+Fix all production issues on fire.astradigital.com.au, complete onboarding flow end-to-end, add full CRUD across all pages.
+
+#### Critical Bugs Fixed
+
+**1. `from __future__ import annotations` in FastAPI route files**
+- `routes.py`, `billing.py`, `clerk_webhooks.py` all had this import.
+- With PEP 563 postponed annotations, FastAPI cannot resolve Pydantic body params at runtime → treats them as query params → 422 "Field required" on every PUT/POST with a body.
+- Fix: removed `from __future__ import annotations` from all three API route files.
+- Note: kept it in service files (no FastAPI inspection there) and `admin.py` (uses only `dict[str, int]` literals which are fine with postponed annotations in that context).
+
+**2. `stripe.Stripe` AttributeError on backend startup**
+- Removing `from __future__ import annotations` from `billing.py` caused `-> stripe.Stripe:` return type to be evaluated at import time.
+- Installed stripe version does not have a `stripe.Stripe` class.
+- Fix: removed the return type annotation from `_stripe()` and changed `dict[str, SubscriptionTier]` annotation to a string literal.
+
+**3. Production DB schema mismatch — tables created by old Alembic migration**
+- `create_db_and_tables()` in `db.py` is a no-op (schema managed by Alembic). The DB was created by migration 001 which had a different schema than the current SQLModel models.
+- Mismatches discovered:
+  - `accounts`: had `account_type` (old name) instead of `type`; missing `notes` column; extra `is_active` column
+  - `transactions`: had `transaction_type` instead of `type`; had `ticker`, `currency`, `fx_rate` columns not in model; missing `is_drp`; `date` was `date` type not `timestamp`
+  - `assets`: had `account_id` FK (old design); `price_updated_at` instead of `last_updated`; extra `is_active`
+  - `users`: missing `display_name` column (had `full_name` instead) — fixed in previous session via ALTER TABLE
+- Fix: dropped `transactions`, `assets`, `accounts` tables and recreated with correct DDL matching current models (see DDL below).
+- `user_settings` schema was correct and preserved (contains real onboarding data).
+
+**4. Onboarding `salary` input losing focus after one keystroke**
+- `StepContent` was defined as an inline component inside `OnboardingPage` → remounted on every state change.
+- Fix: call as `{StepContent()}` (function call) not `<StepContent />` (component).
+
+**5. Clerk Client Trust blocking incognito login**
+- Clerk Attack Protection → Client Trust was enabled → `needs_client_trust not supported yet` error in new browsers/incognito.
+- Fix: disabled in Clerk dashboard.
+
+#### Correct DDL for Recreated Tables (production DB)
+
+```sql
+-- accounts
+CREATE TABLE accounts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    institution VARCHAR(100) NOT NULL DEFAULT '',
+    currency VARCHAR(3) NOT NULL DEFAULT 'AUD',
+    is_retirement BOOLEAN NOT NULL DEFAULT FALSE,
+    notes VARCHAR(500),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX ix_accounts_user_id ON accounts(user_id);
+CREATE INDEX ix_accounts_user_type ON accounts(user_id, type);
+
+-- assets
+CREATE TABLE assets (
+    id SERIAL PRIMARY KEY,
+    ticker VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(200) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    asset_class VARCHAR(50) NOT NULL DEFAULT 'Other',
+    current_price NUMERIC(18,4) NOT NULL DEFAULT 0,
+    last_updated TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX ix_assets_ticker ON assets(ticker);
+
+-- transactions
+CREATE TABLE transactions (
+    id SERIAL PRIMARY KEY,
+    account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    asset_id INTEGER REFERENCES assets(id) ON DELETE SET NULL,
+    type VARCHAR(50) NOT NULL,
+    date TIMESTAMP NOT NULL,
+    units NUMERIC(18,8),
+    price_per_unit NUMERIC(18,4),
+    amount NUMERIC(18,2) NOT NULL,
+    fees NUMERIC(10,2) NOT NULL DEFAULT 0,
+    franking_percentage NUMERIC(5,2),
+    is_drp BOOLEAN NOT NULL DEFAULT FALSE,
+    notes VARCHAR(500),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX ix_transactions_account_date ON transactions(account_id, date);
+CREATE INDEX ix_transactions_asset_type ON transactions(asset_id, type);
+CREATE INDEX ix_transactions_date ON transactions(date);
+```
+
+#### enum Value Serialisation Note
+SQLAlchemy inserts `AccountType` enum values as the enum NAME (e.g. `'CASH'`) not VALUE (`'Cash'`) in some configurations. The `type` column is VARCHAR so this stores cleanly. When reading back, compare against enum names not values if querying raw SQL.
+
+#### Admin Superuser Setup
+To grant a user full Enterprise access via psql:
+```sql
+INSERT INTO subscriptions (user_id, tier, status, cancel_at_period_end, created_at, updated_at)
+SELECT id, 'enterprise', 'active', false, NOW(), NOW()
+FROM users WHERE email = 'admin@astradigital.com.au'
+ON CONFLICT (user_id) DO UPDATE
+SET tier = 'enterprise', status = 'active', current_period_end = NULL, updated_at = NOW();
+```
+
+#### New Files Created (Session 3)
+```
+frontend/
+  components/AccountsManager.tsx     — Full CRUD UI for all account types (used on Settings page)
+  components/AddTransactionModal.tsx — Modal for adding any transaction type with account selector
+  components/AddTransactionButton.tsx — Lightweight client island for server component pages
+```
+
+#### Modified Files (Session 3)
+```
+backend/
+  app/api/routes.py     — Removed from __future__ import annotations; added AccountUpdate schema
+                          and PUT /api/accounts/{id} endpoint
+  app/api/billing.py    — Removed from __future__ import annotations; fixed stripe.Stripe type error
+  app/api/webhooks/clerk_webhooks.py — Removed from __future__ import annotations
+
+frontend/
+  app/settings/page.tsx       — Converted to client component; added Settings / Accounts tabs
+  app/portfolio/page.tsx      — Added + Add Transaction button and AddTransactionModal
+  app/budget/page.tsx         — Added AddTransactionButton island in header
+  app/super/page.tsx          — Added AddTransactionButton island (+ Add Contribution)
+  app/property/page.tsx       — Added AddTransactionButton island (+ Add Property Transaction)
+  lib/api.ts                  — Added Account, TransactionRow, AccountUpdatePayload types;
+                                listAccounts, updateAccount, deleteAccount, listTransactions,
+                                deleteTransaction methods
+```
+
+#### Deployment Notes
+- App lives at `/home/astra/wealthtrack` (NOT /opt/wealthtrack)
+- Server branch is `master`; remote branch is `main` — always pull with `git pull origin main`
+- Backend restart: `systemctl kill -s SIGKILL wealthtrack-backend && sleep 2 && systemctl start wealthtrack-backend`
+- Frontend rebuild required after any frontend change: `cd frontend && npm run build`
+- `NEXT_PUBLIC_*` vars are baked at build time — must be in `.env.production` before `npm run build`
+- Clerk production keys: `pk_live_*` / `sk_live_*` — configured in systemd service files at `/etc/systemd/system/wealthtrack-frontend.service` and `/etc/systemd/system/wealthtrack-backend.service`
