@@ -1,4 +1,3 @@
-from __future__ import annotations
 """
 Clerk webhook handler — syncs user lifecycle events into our database.
 

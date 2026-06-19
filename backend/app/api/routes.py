@@ -1,4 +1,3 @@
-from __future__ import annotations
 """
 FastAPI routers — all application endpoints.
 Authentication via Clerk JWT (get_current_user dependency).
