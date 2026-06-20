@@ -425,34 +425,151 @@ SET tier = 'enterprise', status = 'active', current_period_end = NULL, updated_a
 #### New Files Created (Session 3)
 ```
 frontend/
-  components/AccountsManager.tsx     — Full CRUD UI for all account types (used on Settings page)
-  components/AddTransactionModal.tsx — Modal for adding any transaction type with account selector
+  components/AccountsManager.tsx      — Full CRUD UI for all account types (used on Settings page)
+  components/AddTransactionModal.tsx  — Modal for adding any transaction type with account selector
   components/AddTransactionButton.tsx — Lightweight client island for server component pages
+  components/TransactionsManager.tsx  — Full transaction list with edit/delete modal, filters by account/type
 ```
 
 #### Modified Files (Session 3)
 ```
 backend/
-  app/api/routes.py     — Removed from __future__ import annotations; added AccountUpdate schema
-                          and PUT /api/accounts/{id} endpoint
+  app/api/routes.py     — Removed from __future__ import annotations; added AccountUpdate +
+                          TransactionUpdate schemas; PUT /api/accounts/{id} and
+                          PUT /api/transactions/{id} endpoints
   app/api/billing.py    — Removed from __future__ import annotations; fixed stripe.Stripe type error
   app/api/webhooks/clerk_webhooks.py — Removed from __future__ import annotations
 
 frontend/
-  app/settings/page.tsx       — Converted to client component; added Settings / Accounts tabs
-  app/portfolio/page.tsx      — Added + Add Transaction button and AddTransactionModal
+  app/settings/page.tsx       — Converted to client component; tabbed UI: Settings | Accounts
+  app/portfolio/page.tsx      — Holdings / Transactions tab switcher; + Add Transaction button;
+                                AddTransactionModal + TransactionsManager integrated
   app/budget/page.tsx         — Added AddTransactionButton island in header
   app/super/page.tsx          — Added AddTransactionButton island (+ Add Contribution)
   app/property/page.tsx       — Added AddTransactionButton island (+ Add Property Transaction)
   lib/api.ts                  — Added Account, TransactionRow, AccountUpdatePayload types;
                                 listAccounts, updateAccount, deleteAccount, listTransactions,
-                                deleteTransaction methods
+                                updateTransaction, deleteTransaction methods
 ```
 
-#### Deployment Notes
-- App lives at `/home/astra/wealthtrack` (NOT /opt/wealthtrack)
-- Server branch is `master`; remote branch is `main` — always pull with `git pull origin main`
-- Backend restart: `systemctl kill -s SIGKILL wealthtrack-backend && sleep 2 && systemctl start wealthtrack-backend`
-- Frontend rebuild required after any frontend change: `cd frontend && npm run build`
-- `NEXT_PUBLIC_*` vars are baked at build time — must be in `.env.production` before `npm run build`
-- Clerk production keys: `pk_live_*` / `sk_live_*` — configured in systemd service files at `/etc/systemd/system/wealthtrack-frontend.service` and `/etc/systemd/system/wealthtrack-backend.service`
+---
+
+### Session 4 — 2026-06-20 (DB Schema Audit + Superuser)
+
+#### Additional DB Schema Fixes
+
+**monthly_snapshots missing columns**
+Old migration created a stripped-down snapshot table. Added all missing columns:
+```sql
+ALTER TABLE monthly_snapshots
+  ADD COLUMN IF NOT EXISTS shares_gain NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS etf_gain NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS crypto_gain NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS managed_fund_value NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS managed_fund_gain NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS cash_increase NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS super_voluntary_contrib NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS super_gain NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS property_purchase_value NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS property_equity NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS property_mortgage_balance NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS property_interest_fees NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS property_principal_paid NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS other_assets_value NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS other_assets_gain NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS liabilities_paid NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS salary_income NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_assets NUMERIC(18,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_liabilities NUMERIC(18,2) NOT NULL DEFAULT 0;
+```
+
+**users table — email not synced from Clerk**
+User row created by Clerk webhook had empty email (webhook payload not mapping email field).
+Fixed manually:
+```sql
+UPDATE users SET email = 'admin@astradigital.com.au' WHERE clerk_user_id = 'user_3FLCluVOeyRN0U5JV48bcIpgpFq';
+```
+
+**subscriptions — enum stored as lowercase, SQLAlchemy expects uppercase name**
+The DB stores `'enterprise'` but `SubscriptionTier` enum names are `ENTERPRISE`, `PRO`, `FREE`.
+SQLAlchemy's LookupError on read. Fix: store enum NAMES not values:
+```sql
+UPDATE subscriptions SET tier = 'ENTERPRISE', status = 'ACTIVE' WHERE user_id = 7;
+```
+> **Rule**: always insert subscription tier/status as UPPERCASE enum names (`'ENTERPRISE'`, `'ACTIVE'`, `'FREE'`, `'PRO'`, `'TRIALING'`, `'PAST_DUE'`, `'CANCELED'`, `'INCOMPLETE'`).
+
+#### Corrected Admin Superuser SQL
+```sql
+-- Set email first (if missing)
+UPDATE users SET email = 'admin@astradigital.com.au' WHERE id = <user_id>;
+
+-- Upsert enterprise subscription (use UPPERCASE enum names)
+INSERT INTO subscriptions (user_id, tier, status, cancel_at_period_end, created_at, updated_at)
+VALUES (<user_id>, 'ENTERPRISE', 'ACTIVE', false, NOW(), NOW())
+ON CONFLICT (user_id) DO UPDATE
+SET tier = 'ENTERPRISE', status = 'ACTIVE', current_period_end = NULL, updated_at = NOW();
+```
+
+#### Next.js Standalone Build — Static Assets
+After every `npm run build`, static files must be copied or the site loads without CSS/JS:
+```bash
+cp -r frontend/.next/static frontend/.next/standalone/.next/static
+# Only if public/ directory exists:
+# cp -r frontend/public frontend/.next/standalone/public
+```
+
+---
+
+## Deployment Runbook
+
+### Standard Deploy (backend + frontend change)
+```bash
+cd /home/astra/wealthtrack
+git pull origin main
+# Restart backend
+systemctl kill -s SIGKILL wealthtrack-backend && sleep 2 && systemctl start wealthtrack-backend
+# Rebuild + restart frontend
+cd frontend && npm run build
+cp -r .next/static .next/standalone/.next/static
+systemctl restart wealthtrack-frontend
+```
+
+### Backend-only change
+```bash
+cd /home/astra/wealthtrack && git pull origin main
+systemctl kill -s SIGKILL wealthtrack-backend && sleep 2 && systemctl start wealthtrack-backend
+```
+
+### Verify backend started cleanly
+```bash
+journalctl -u wealthtrack-backend -n 10 --no-pager
+# Must show: "Application startup complete." for both workers
+```
+
+### Check backend errors live
+```bash
+journalctl -u wealthtrack-backend -f --no-pager
+```
+
+### DB access
+```bash
+psql -U wealth_user -d wealth_tracker -h localhost
+# Password: WealthTrack_Prod_2024
+```
+
+## Infrastructure Notes
+- **App path**: `/home/astra/wealthtrack` (NOT /opt/wealthtrack)
+- **Git**: server branch is `master`, remote is `main` → always `git pull origin main`
+- **systemd services**: `/etc/systemd/system/wealthtrack-frontend.service` and `wealthtrack-backend.service`
+- **Clerk keys** (in systemd service files, NOT in .env):
+  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_***`
+  - `CLERK_SECRET_KEY=sk_live_***`
+- **`NEXT_PUBLIC_*` vars** are baked at build time — must be in `frontend/.env.production` before `npm run build`. Runtime systemd env vars do NOT affect the client bundle.
+- **`frontend/.env.production`**:
+  ```
+  NEXT_PUBLIC_API_URL=https://fire.astradigital.com.au
+  NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+  NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+  ```
+- **Clerk dashboard**: Attack Protection → Client Trust must be DISABLED (causes login failures in incognito/new browsers)
+- **Nginx**: proxies `/api/*` to `localhost:8000` (backend), everything else to `localhost:3000` (frontend)

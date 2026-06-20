@@ -1,19 +1,52 @@
-import { api } from "@/lib/api";
-import { getAuthToken } from "@/lib/auth";
+"use client";
+
+import { useAuth } from "@clerk/nextjs";
+import { useCallback, useEffect, useState } from "react";
+import { api, SideIncomeMonth } from "@/lib/api";
 import { formatAUD } from "@/lib/format";
 import SideIncomeChart from "@/components/SideIncomeChart";
+import AddTransactionModal from "@/components/AddTransactionModal";
+import TransactionsManager from "@/components/TransactionsManager";
 
-export const metadata = { title: "Side Income — WealthTrack AU" };
+export default function SideIncomePage() {
+  const { getToken } = useAuth();
+  const [monthly, setMonthly] = useState<SideIncomeMonth[]>([]);
+  const [rollingAvg, setRollingAvg] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
 
-export default async function SideIncomePage() {
-  const token = await getAuthToken();
+  useEffect(() => {
+    document.title = "Side Income — WealthTrack AU";
+  }, []);
 
-  const [monthly, rollingData] = await Promise.all([
-    api.getSideIncomeMonthly(token).catch(() => []),
-    api.getSideIncomeRollingAvg(token).catch(() => ({ rolling_365_avg: 0 })),
-  ]);
+  const loadData = useCallback(async () => {
+    const token = await getToken();
+    if (!token) return;
+    try {
+      const [monthlyData, rollingData] = await Promise.all([
+        api.getSideIncomeMonthly(token).catch(() => []),
+        api.getSideIncomeRollingAvg(token).catch(() => ({ rolling_365_avg: 0 })),
+      ]);
+      setMonthly(monthlyData);
+      setRollingAvg(rollingData?.rolling_365_avg ?? 0);
+    } finally {
+      setLoading(false);
+    }
+  }, [getToken]);
 
-  const rollingAvg = rollingData?.rolling_365_avg ?? 0;
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  if (loading && monthly.length === 0 && rollingAvg === 0) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+        <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+      </div>
+    );
+  }
 
   // Derive FY YTD from monthly data (Australian FY: Jul–Jun)
   const now = new Date();
@@ -34,7 +67,24 @@ export default async function SideIncomePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Side Income</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Side Income</h1>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:border-emerald-500 px-3 py-1.5 rounded-lg transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
+        >
+          + Add Side Income
+        </button>
+      </div>
+
+      {showAddModal && (
+        <AddTransactionModal
+          onClose={() => setShowAddModal(false)}
+          onSaved={loadData}
+          defaultType="Income"
+          allowedAccountTypes={["Cash", "Other Asset"]}
+        />
+      )}
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -68,14 +118,22 @@ export default async function SideIncomePage() {
           </p>
         ) : (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-600 dark:text-slate-400">Total side income recorded</span>
+            <span className="text-sm text-slate-650 dark:text-slate-405">Total side income recorded</span>
             <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatAUD(totalAllTime)}</span>
           </div>
         )}
-        <p className="text-xs text-slate-600 mt-3">
+        <p className="text-xs text-slate-500 mt-3">
           Rolling 365-day average excludes employment salary. Includes rental income, freelance, dividends classified as side income.
         </p>
       </div>
+
+      {/* Side Income Transactions Ledger */}
+      <TransactionsManager
+        transactionTypes={["Income"]}
+        accountTypes={["Cash", "Other Asset"]}
+        title="Side Income Entries Ledger (Non-employment Income)"
+        onSaved={loadData}
+      />
     </div>
   );
 }

@@ -1,14 +1,54 @@
-import { api } from "@/lib/api";
-import { getAuthToken } from "@/lib/auth";
+"use client";
+
+import { useAuth } from "@clerk/nextjs";
+import { useCallback, useEffect, useState } from "react";
+import { api, PropertyMetrics, Account } from "@/lib/api";
 import { formatAUD, gainColour } from "@/lib/format";
 import LVRGauge from "@/components/LVRGauge";
-import AddTransactionButton from "@/components/AddTransactionButton";
+import AddTransactionModal from "@/components/AddTransactionModal";
+import TransactionsManager from "@/components/TransactionsManager";
 
-export const metadata = { title: "Property — WealthTrack AU" };
+export default function PropertyPage() {
+  const { getToken } = useAuth();
+  const [properties, setProperties] = useState<PropertyMetrics[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>(undefined);
 
-export default async function PropertyPage() {
-  const token = await getAuthToken();
-  const properties = await api.getProperty(token).catch(() => []);
+  useEffect(() => {
+    document.title = "Property — WealthTrack AU";
+  }, []);
+
+  const loadData = useCallback(async () => {
+    const token = await getToken();
+    if (!token) return;
+    try {
+      const [propsData, acctsData] = await Promise.all([
+        api.getProperty(token).catch(() => []),
+        api.listAccounts(token).catch(() => []),
+      ]);
+      setProperties(propsData);
+      setAccounts(acctsData);
+    } finally {
+      setLoading(false);
+    }
+  }, [getToken]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+        <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+      </div>
+    );
+  }
 
   const totalEquity     = properties.reduce((a, p) => a + p.net_equity, 0);
   const totalValue      = properties.reduce((a, p) => a + p.current_valuation, 0);
@@ -19,8 +59,25 @@ export default async function PropertyPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Property</h1>
-        <AddTransactionButton label="+ Add Property Transaction" />
+        <button
+          onClick={() => {
+            setSelectedAccountId(undefined);
+            setShowAddModal(true);
+          }}
+          className="text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:border-emerald-500 px-3 py-1.5 rounded-lg transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
+        >
+          + Add Property Transaction
+        </button>
       </div>
+
+      {showAddModal && (
+        <AddTransactionModal
+          onClose={() => setShowAddModal(false)}
+          onSaved={loadData}
+          defaultAccountId={selectedAccountId}
+          allowedAccountTypes={["Property"]}
+        />
+      )}
 
       {/* Portfolio KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -55,12 +112,30 @@ export default async function PropertyPage() {
               ? Math.min((prop.net_equity / prop.purchase_price) * 100, 100)
               : 0;
 
+            const matchedAccount = accounts.find(
+              (a) => a.name === prop.account_name && a.type === "Property"
+            );
+            const accountId = matchedAccount?.id;
+
             return (
               <div key={prop.account_name} className="card space-y-5">
                 {/* Header */}
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="font-semibold text-slate-900 dark:text-slate-100">{prop.account_name}</h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-semibold text-slate-900 dark:text-slate-100">{prop.account_name}</h2>
+                      {accountId && (
+                        <button
+                          onClick={() => {
+                            setSelectedAccountId(accountId);
+                            setShowAddModal(true);
+                          }}
+                          className="text-[10px] text-emerald-500 hover:text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/50 px-1.5 py-0.5 rounded transition-colors"
+                        >
+                          + Add Entry
+                        </button>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-500 mt-0.5">
                       Purchased {formatAUD(prop.purchase_price)}
                     </p>
@@ -78,7 +153,7 @@ export default async function PropertyPage() {
                   </div>
                   <div className="bg-slate-100 dark:bg-slate-800/60 rounded-lg p-3">
                     <p className="text-xs text-slate-500 mb-1">Mortgage</p>
-                    <p className="text-sm font-semibold text-red-650 dark:text-red-400">{formatAUD(prop.mortgage_balance)}</p>
+                    <p className="text-sm font-semibold text-red-600 dark:text-red-400">{formatAUD(prop.mortgage_balance)}</p>
                   </div>
                   <div className="bg-slate-100 dark:bg-slate-800/60 rounded-lg p-3">
                     <p className="text-xs text-slate-500 mb-1">Equity</p>
@@ -89,7 +164,7 @@ export default async function PropertyPage() {
                 {/* LVR Gauge */}
                 <div className="flex flex-col items-center py-2">
                   <LVRGauge lvr={prop.lvr} size={160} />
-                  <p className="text-xs text-slate-600 mt-2">
+                  <p className="text-xs text-slate-650 dark:text-slate-400 mt-2 text-center">
                     Loan-to-Value Ratio — lenders typically require &lt;80% for no LMI
                   </p>
                 </div>
@@ -110,7 +185,7 @@ export default async function PropertyPage() {
 
                 {/* Annual interest / principal */}
                 {(prop.total_interest_fees_paid > 0 || prop.total_principal_paid > 0) && (
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200 dark:border-slate-850">
                     <div>
                       <p className="text-xs text-slate-500 mb-0.5">Total Interest Paid</p>
                       <p className="text-sm text-red-400 font-medium">{formatAUD(prop.total_interest_fees_paid)}</p>
@@ -119,6 +194,25 @@ export default async function PropertyPage() {
                       <p className="text-xs text-slate-500 mb-0.5">Principal Repaid</p>
                       <p className="text-sm text-emerald-400 font-medium">{formatAUD(prop.total_principal_paid)}</p>
                     </div>
+                  </div>
+                )}
+
+                {/* Collapsible Ledger */}
+                {accountId && (
+                  <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <details className="group">
+                      <summary className="flex items-center justify-between cursor-pointer text-xs font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 select-none">
+                        <span>PROPERTY TRANSACTIONS LEDGER</span>
+                        <span className="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+                      </summary>
+                      <div className="mt-3">
+                        <TransactionsManager
+                          accountId={accountId}
+                          title={`${prop.account_name} Entries`}
+                          onSaved={loadData}
+                        />
+                      </div>
+                    </details>
                   </div>
                 )}
               </div>

@@ -282,6 +282,16 @@ export interface AccountUpdatePayload {
   notes?: string;
 }
 
+export interface Asset {
+  id: number;
+  ticker: string;
+  name: string;
+  category: string;
+  asset_class: string;
+  current_price: number;
+  last_updated: string;
+}
+
 export interface AssetCreatePayload {
   ticker: string;
   name: string;
@@ -315,6 +325,8 @@ export interface TransactionCreatePayload {
   amount: number;
   fees?: number;
   notes?: string;
+  franking_percentage?: number;
+  is_drp?: boolean;
 }
 
 export const api = {
@@ -377,6 +389,7 @@ export const api = {
     request<Account>("PUT", `/api/accounts/${id}`, token, body),
   deleteAccount: (token: string, id: number) =>
     del<{ deleted: number }>(`/api/accounts/${id}`, token),
+  listAssets: (token: string) => get<Asset[]>("/api/assets", token),
   createAsset: (token: string, body: AssetCreatePayload) =>
     post<{ id: number; ticker: string }>("/api/assets", token, body),
   listTransactions: (token: string, accountId?: number) =>

@@ -1,20 +1,23 @@
-import { api, ApiError } from "@/lib/api";
-import { getAuthToken } from "@/lib/auth";
-import { formatAUD, formatDate, formatPct } from "@/lib/format";
-import UpgradePrompt from "@/components/UpgradePrompt";
+"use client";
 
-export const metadata = { title: "Dividends — WealthTrack AU" };
+import { useAuth } from "@clerk/nextjs";
+import { useCallback, useEffect, useState } from "react";
+import { api, ApiError, DividendSummary } from "@/lib/api";
+import { formatAUD, formatDate, gainColour } from "@/lib/format";
+import UpgradePrompt from "@/components/UpgradePrompt";
+import AddTransactionModal from "@/components/AddTransactionModal";
+import TransactionsManager from "@/components/TransactionsManager";
 
 const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-function DividendCalendar({ dividends }: { dividends: { date: string; net_amount: number }[] }) {
+function DividendCalendar({ dividends }: { dividends: DividendSummary[] }) {
   const currentYear = new Date().getFullYear();
   const byMonth: Record<number, number> = {};
   for (const d of dividends) {
     const dt = new Date(d.date);
     if (dt.getFullYear() === currentYear) {
       const m = dt.getMonth();
-      byMonth[m] = (byMonth[m] ?? 0) + d.net_amount;
+      byMonth[m] = (byMonth[m] ?? 0) + Number(d.net_amount);
     }
   }
   const max = Math.max(...Object.values(byMonth), 1);
@@ -49,20 +52,40 @@ function DividendCalendar({ dividends }: { dividends: { date: string; net_amount
   );
 }
 
-export default async function DividendsPage() {
-  const token = await getAuthToken();
-  let dividends = null;
-  let fySummary: Record<string, Record<string, number>> = {};
-  let isLocked = false;
+export default function DividendsPage() {
+  const { getToken } = useAuth();
+  const [dividends, setDividends] = useState<DividendSummary[]>([]);
+  const [fySummary, setFySummary] = useState<Record<string, Record<string, number>>>({});
+  const [loading, setLoading] = useState(true);
+  const [isLocked, setIsLocked] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
-  try {
-    [dividends, fySummary] = await Promise.all([
-      api.getDividends(token),
-      api.getDividendFYSummary(token),
-    ]);
-  } catch (e) {
-    if (e instanceof ApiError && e.status === 403) isLocked = true;
-  }
+  useEffect(() => {
+    document.title = "Dividends — WealthTrack AU";
+  }, []);
+
+  const loadData = useCallback(async () => {
+    const token = await getToken();
+    if (!token) return;
+    try {
+      const [divs, summary] = await Promise.all([
+        api.getDividends(token),
+        api.getDividendFYSummary(token),
+      ]);
+      setDividends(divs);
+      setFySummary(summary);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 403) {
+        setIsLocked(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [getToken]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   if (isLocked) {
     return (
@@ -76,16 +99,42 @@ export default async function DividendsPage() {
     );
   }
 
-  const divs = dividends ?? [];
-  const totalNet = divs.reduce((a, d) => a + d.net_amount, 0);
-  const totalFranking = divs.reduce((a, d) => a + d.franking_credit, 0);
-  const totalGross = divs.reduce((a, d) => a + d.gross_amount, 0);
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+        <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+      </div>
+    );
+  }
+
+  const totalNet = dividends.reduce((a, d) => a + Number(d.net_amount), 0);
+  const totalFranking = dividends.reduce((a, d) => a + Number(d.franking_credit), 0);
+  const totalGross = dividends.reduce((a, d) => a + Number(d.gross_amount), 0);
 
   const fYears = Object.keys(fySummary).sort().reverse();
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Dividends</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Dividends</h1>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:border-emerald-500 px-3 py-1.5 rounded-lg transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
+        >
+          + Add Dividend
+        </button>
+      </div>
+
+      {showAddModal && (
+        <AddTransactionModal
+          onClose={() => setShowAddModal(false)}
+          onSaved={loadData}
+          defaultType="Dividend"
+          allowedAccountTypes={["Brokerage", "Super", "Cash"]}
+        />
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-4">
@@ -105,7 +154,7 @@ export default async function DividendsPage() {
       </div>
 
       {/* Calendar */}
-      <DividendCalendar dividends={divs} />
+      <DividendCalendar dividends={dividends} />
 
       {/* FY Summary */}
       {fYears.length > 0 && (
@@ -144,54 +193,14 @@ export default async function DividendsPage() {
       )}
 
       {/* Full Ledger */}
-      <div className="card">
-        <p className="stat-label mb-3">Dividend Ledger</p>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>
-                <th className="table-th text-left">Ticker</th>
-                <th className="table-th text-left">Class</th>
-                <th className="table-th">Ex-Date</th>
-                <th className="table-th">Units</th>
-                <th className="table-th">Net Amount</th>
-                <th className="table-th">Franking %</th>
-                <th className="table-th">Franking Credit</th>
-                <th className="table-th">Gross</th>
-                <th className="table-th">Yield on Cost</th>
-                <th className="table-th">FY</th>
-              </tr>
-            </thead>
-            <tbody>
-              {divs.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="text-center text-slate-500 text-sm py-8">
-                    No dividends recorded yet. Add dividend transactions to see them here.
-                  </td>
-                </tr>
-              ) : (
-                divs.map((d, i) => (
-                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                    <td className="table-td text-left font-medium text-slate-900 dark:text-slate-100">{d.ticker}</td>
-                    <td className="table-td text-left text-slate-500 dark:text-slate-400 text-xs">{d.asset_class}</td>
-                    <td className="table-td text-slate-700 dark:text-slate-300">{formatDate(d.date)}</td>
-                    <td className="table-td text-slate-600 dark:text-slate-400">{Number(d.units_at_ex_date).toFixed(2)}</td>
-                    <td className="table-td text-emerald-600 dark:text-emerald-400 font-medium">{formatAUD(d.net_amount)}</td>
-                    <td className="table-td text-slate-600 dark:text-slate-400">{d.franking_percentage.toFixed(0)}%</td>
-                    <td className="table-td text-blue-600 dark:text-blue-400">{formatAUD(d.franking_credit)}</td>
-                    <td className="table-td font-semibold text-slate-800 dark:text-slate-200">{formatAUD(d.gross_amount)}</td>
-                    <td className="table-td text-slate-600 dark:text-slate-400">{d.yield_on_cost.toFixed(2)}%</td>
-                    <td className="table-td text-slate-500 dark:text-slate-500 text-xs">{d.tax_year}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        <p className="text-xs text-slate-600 mt-3">
-          Franking credit = net dividend × (franking% / 100) × (30/70). Gross-up at 30% corporate tax rate (ATO).
-        </p>
-      </div>
+      <TransactionsManager
+        transactionTypes={["Dividend"]}
+        title="Dividend Ledger"
+        onSaved={loadData}
+      />
+      <p className="text-xs text-slate-500 -mt-2">
+        Franking credit = net dividend × (franking% / 100) × (30/70). Gross-up at 30% corporate tax rate (ATO).
+      </p>
     </div>
   );
 }

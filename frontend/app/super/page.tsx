@@ -1,9 +1,11 @@
-import { api } from "@/lib/api";
-import { getAuthToken } from "@/lib/auth";
-import { formatAUD, gainColour } from "@/lib/format";
-import AddTransactionButton from "@/components/AddTransactionButton";
+"use client";
 
-export const metadata = { title: "Super — WealthTrack AU" };
+import { useAuth } from "@clerk/nextjs";
+import { useCallback, useEffect, useState } from "react";
+import { api, SuperSummary } from "@/lib/api";
+import { formatAUD, gainColour } from "@/lib/format";
+import AddTransactionModal from "@/components/AddTransactionModal";
+import TransactionsManager from "@/components/TransactionsManager";
 
 function ProgressBar({ pct, color = "bg-emerald-500" }: { pct: number; color?: string }) {
   return (
@@ -13,9 +15,40 @@ function ProgressBar({ pct, color = "bg-emerald-500" }: { pct: number; color?: s
   );
 }
 
-export default async function SuperPage() {
-  const token = await getAuthToken();
-  const data = await api.getSuperSummary(token).catch(() => null);
+export default function SuperPage() {
+  const { getToken } = useAuth();
+  const [data, setData] = useState<SuperSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  useEffect(() => {
+    document.title = "Super — WealthTrack AU";
+  }, []);
+
+  const loadData = useCallback(async () => {
+    const token = await getToken();
+    if (!token) return;
+    try {
+      const summary = await api.getSuperSummary(token).catch(() => null);
+      setData(summary);
+    } finally {
+      setLoading(false);
+    }
+  }, [getToken]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  if (loading && !data) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+        <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+      </div>
+    );
+  }
 
   const total = data?.total_balance ?? 0;
   const gain  = data?.total_gain ?? 0;
@@ -28,11 +61,25 @@ export default async function SuperPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Superannuation</h1>
-        <AddTransactionButton label="+ Add Contribution" />
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:border-emerald-500 px-3 py-1.5 rounded-lg transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
+        >
+          + Add Contribution
+        </button>
       </div>
       <p className="text-sm text-slate-500 -mt-4">
         Super assets are excluded from the main portfolio and not subject to CGT (separate tax treatment).
       </p>
+
+      {showAddModal && (
+        <AddTransactionModal
+          onClose={() => setShowAddModal(false)}
+          onSaved={loadData}
+          defaultType="Deposit"
+          allowedAccountTypes={["Super"]}
+        />
+      )}
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -114,6 +161,13 @@ export default async function SuperPage() {
           </div>
         </div>
       )}
+
+      {/* Interactive Super Transactions Ledger */}
+      <TransactionsManager
+        accountTypes={["Super"]}
+        title="Superannuation Ledger (Contributions & Withdrawals)"
+        onSaved={loadData}
+      />
 
       {/* Info box */}
       <div className="card border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20">
